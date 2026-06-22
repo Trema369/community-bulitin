@@ -1,0 +1,9 @@
+2026-06-21 18:51:31.054 CAT [5831] LOG:  starting PostgreSQL 18.2 on aarch64-unknown-linux-android, compiled by Android (13989888, +pgo, +bolt, +lto, +mlgo, based on r563880c) clang version 21.0.0 (https://android.googlesource.com/toolchain/llvm-project 5e96669f06077099aa41290cdb4c5e6fa0f59349), 64-bit
+2026-06-21 18:51:31.055 CAT [5831] LOG:  listening on IPv4 address "127.0.0.1", port 5432
+2026-06-21 18:51:31.057 CAT [5831] LOG:  listening on Unix socket "/data/data/com.termux/files/usr/tmp/.s.PGSQL.5432"
+2026-06-21 18:51:31.062 CAT [5840] LOG:  database system was shut down at 2026-06-21 18:50:57 CAT
+2026-06-21 18:51:31.067 CAT [5831] LOG:  database system is ready to accept connections
+2026-06-21 18:52:02.422 CAT [6539] FATAL:  database "u0_a351" does not exist
+2026-06-21 18:52:56.280 CAT [7470] FATAL:  database "communityhub" does not exist
+2026-06-21 18:56:31.164 CAT [5838] LOG:  checkpoint starting: time
+2026-06-21 18:58:15.334 CAT [5838] LOG:  checkpoint complete: wrote 1015 buffers (6.2%), wrote 3 SLRU buffers; 1 WAL file(s) added, 0 removed, 0 recycled; write=103.369 s, sync=0.700 s, total=104.171 s; sync files=325, longest=0.010 s, average=0.003 s; distance=4763 kB, estimate=4763 kB; lsn=0/1C0A8F8, redo lsn=0/1C0A868
