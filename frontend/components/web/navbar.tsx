@@ -52,7 +52,7 @@ export function AppSidebar() {
                         </div>
                         <div className="flex flex-col gap-0.5 leading-none">
                             <span className="font-semibold text-sm">
-                                Community Bulitn
+                                Community Bulitin
                             </span>
                         </div>
                     </div>
