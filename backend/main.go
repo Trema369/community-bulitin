@@ -1,34 +1,32 @@
 package main
 
 import (
-	"fmt"
-	"net/http"
-
 	"com-hub/database"
-	"com-hub/models"
-	"com-hub/repository"
+	"com-hub/routes"
+	"fmt"
+	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	godotenv.Load()
 	database.Init()
 	router := gin.Default()
 
-	user := models.User{
-		Name:     "trema",
-		Email:    "trema@gmail.com",
-		Password: "123456",
-	}
-	err := repository.CreateUser(&user)
-	if err != nil {
-		fmt.Println("failed to create user")
-	}
-	router.GET("/hello", func(c *gin.Context) {
-		c.String(http.StatusOK, "hello world")
-	})
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:3000"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Content-Type"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 
-	if err := router.Run(); err != nil {
+	routes.RegisterRoutes(router)
+
+	if err := router.Run(":8080"); err != nil {
 		fmt.Println("Failed to initiate server")
 	}
 }

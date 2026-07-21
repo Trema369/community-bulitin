@@ -1,0 +1,11 @@
+{
+	"name": "community-hub",
+	"version": "1.0.0",
+	"private": true,
+	"scripts": {
+		"dev": "concurrently -k -n BACKEND,FRONTEND -c blue,green \"cd backend && go run .\" \"cd frontend && pnpm dev\""
+	},
+	"devDependencies": {
+		"concurrently": "^9.2.1"
+	}
+}

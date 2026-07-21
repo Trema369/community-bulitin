@@ -6,6 +6,6 @@ func Init() {
 
 	Connect()
 
-	DB.AutoMigrate(&models.User{})
-
+	DB.AutoMigrate(&models.User{}, &models.Badge{}, &models.UserBadge{})
+	SeedBadges()
 }
