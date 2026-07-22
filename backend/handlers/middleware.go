@@ -36,3 +36,28 @@ func AuthMiddleware() gin.HandlerFunc {
 		c.Next()
 	}
 }
+
+// handlers/middleware.go — add this alongside AuthMiddleware
+func OptionalAuthMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		tokenStr, err := c.Cookie("auth_token")
+		if err != nil {
+			c.Next()
+			return
+		}
+		token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
+			return jwtSecret, nil
+		})
+		if err != nil || !token.Valid {
+			c.Next()
+			return
+		}
+		claims, ok := token.Claims.(jwt.MapClaims)
+		if !ok {
+			c.Next()
+			return
+		}
+		c.Set("userID", uint(claims["sub"].(float64)))
+		c.Next()
+	}
+}

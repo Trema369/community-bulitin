@@ -20,3 +20,14 @@ func SeedBadges() {
 		DB.Where(models.Badge{Key: b.Key}).FirstOrCreate(&b)
 	}
 }
+
+func SeedCommunities() {
+	communities := []models.Community{
+		{Name: "general", Description: "General discussion"},
+		{Name: "showcase", Description: "Show off what you're building"},
+		{Name: "help", Description: "Ask for help"},
+	}
+	for _, c := range communities {
+		DB.Where(models.Community{Name: c.Name}).FirstOrCreate(&c)
+	}
+}

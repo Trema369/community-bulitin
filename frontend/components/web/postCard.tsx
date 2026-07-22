@@ -1,33 +1,163 @@
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Separator } from '../ui/separator';
+'use client';
+import { useState } from 'react';
+import Image from 'next/image';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { Badge } from '../ui/badge';
+import { Button } from '../ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { getInitials, cn } from '@/lib/utils';
+import { ArrowBigUp, ArrowBigDown, MessageSquare, Eye } from 'lucide-react';
 
 export interface Post {
-    id: string;
-    community: string;
-    tags: string[];
+    id: number;
     title: string;
     content: string;
-    createdAt: string;
-    author: {
-        id: string;
-        username: string;
-        avatar?: string;
-    };
+    tags: string[];
+    community: { id: number; name: string; description: string };
+    author: { id: number; username: string; avatar?: string };
+    created_at: string;
+    media?: PostMedia[];
+    score: number;
+    view_count: number;
+    comment_count: number;
+    user_vote: number;
 }
 
-type PostCardProps = {
-    post: Post;
+export type PostMedia = {
+    id: string;
+    url: string;
+    type: 'image' | 'video';
+    alt?: string;
 };
+
+type PostCardProps = { post: Post };
+
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
+
+function formatRelativeTime(dateStr: string): string {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const seconds = Math.floor(diff / 1000);
+    if (seconds < 60) return 'just now';
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    return `${days}d ago`;
+}
+
 export function PostCard({ post }: PostCardProps) {
+    const [score, setScore] = useState(post.score);
+    const [userVote, setUserVote] = useState(post.user_vote);
+    const [voting, setVoting] = useState(false);
+
+    const handleVote = async (value: 1 | -1) => {
+        if (voting) return;
+        setVoting(true);
+        const prevScore = score;
+        const prevVote = userVote;
+        const delta = userVote === value ? -value : value - userVote;
+        setScore(prevScore + delta);
+        setUserVote(userVote === value ? 0 : value);
+
+        try {
+            const res = await fetch(`${API_BASE}/posts/${post.id}/vote`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ value }),
+            });
+            if (!res.ok) throw new Error();
+            const data = await res.json();
+            setScore(data.score);
+            setUserVote(data.user_vote);
+        } catch {
+            setScore(prevScore);
+            setUserVote(prevVote);
+        } finally {
+            setVoting(false);
+        }
+    };
+
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle>{post.title}</CardTitle>
-            </CardHeader>
-            <Separator />
-            <CardContent>
-                <p>{post.content}</p>
-            </CardContent>
-        </Card>
+        <div className="flex gap-3 border-b border-border/50 py-3 last:border-none">
+            {/* Vote column */}
+            <div className="flex flex-col items-center gap-0.5 pt-0.5">
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className={cn('h-6 w-6', userVote === 1 && 'text-orange-500')}
+                    onClick={() => handleVote(1)}
+                    disabled={voting}
+                >
+                    <ArrowBigUp className="h-4 w-4" />
+                </Button>
+                <span className="text-xs font-medium">{score}</span>
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className={cn('h-6 w-6', userVote === -1 && 'text-blue-500')}
+                    onClick={() => handleVote(-1)}
+                    disabled={voting}
+                >
+                    <ArrowBigDown className="h-4 w-4" />
+                </Button>
+            </div>
+
+            {/* Content column */}
+            <div className="flex flex-1 flex-col gap-1.5 min-w-0">
+                <div className="flex items-center gap-2">
+                    <Avatar className="h-5 w-5">
+                        {post.author.avatar && <AvatarImage src={post.author.avatar} alt={post.author.username} />}
+                        <AvatarFallback className="text-[9px]">{getInitials(post.author.username)}</AvatarFallback>
+                    </Avatar>
+                    <span className="text-xs text-muted-foreground">
+                        {post.author.username} · {post.community.name} · {formatRelativeTime(post.created_at)}
+                    </span>
+                </div>
+
+                <h3 className="text-sm font-semibold leading-snug">{post.title}</h3>
+
+                <div className="prose prose-sm dark:prose-invert max-w-none text-sm leading-snug [&>*]:my-1">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{post.content}</ReactMarkdown>
+                </div>
+
+                {post.media && post.media.length > 0 && (
+                    <div className={`grid gap-2 ${post.media.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
+                        {post.media.map((item) => (
+                            <div key={item.id} className="relative aspect-video overflow-hidden rounded-md border border-border">
+                                {item.type === 'image' ? (
+                                    <Image src={item.url} alt={item.alt ?? ''} fill className="object-cover" />
+                                ) : (
+                                    <video src={item.url} controls className="h-full w-full object-cover" />
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                {post.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                        {post.tags.map((tag) => (
+                            <Badge key={tag} variant="secondary" className="text-[10px] px-1.5 py-0">
+                                {tag}
+                            </Badge>
+                        ))}
+                    </div>
+                )}
+
+                <div className="flex items-center gap-3 text-xs text-muted-foreground pt-0.5">
+                    <span className="flex items-center gap-1">
+                        <MessageSquare className="h-3.5 w-3.5" />
+                        {post.comment_count}
+                    </span>
+                    <span className="flex items-center gap-1">
+                        <Eye className="h-3.5 w-3.5" />
+                        {post.view_count}
+                    </span>
+                </div>
+            </div>
+        </div>
     );
 }
