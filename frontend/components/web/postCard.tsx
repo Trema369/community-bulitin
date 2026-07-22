@@ -33,7 +33,8 @@ export type PostMedia = {
 
 type PostCardProps = { post: Post };
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
+const API_BASE =
+    process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
 function formatRelativeTime(dateStr: string): string {
     const diff = Date.now() - new Date(dateStr).getTime();
@@ -81,73 +82,110 @@ export function PostCard({ post }: PostCardProps) {
     };
 
     return (
-        <div className="flex gap-3 border-b border-border/50 py-3 last:border-none">
-            {/* Vote column */}
-            <div className="flex flex-col items-center gap-0.5 pt-0.5">
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    className={cn('h-6 w-6', userVote === 1 && 'text-orange-500')}
-                    onClick={() => handleVote(1)}
-                    disabled={voting}
-                >
-                    <ArrowBigUp className="h-4 w-4" />
-                </Button>
-                <span className="text-xs font-medium">{score}</span>
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    className={cn('h-6 w-6', userVote === -1 && 'text-blue-500')}
-                    onClick={() => handleVote(-1)}
-                    disabled={voting}
-                >
-                    <ArrowBigDown className="h-4 w-4" />
-                </Button>
+        <div className="flex flex-col gap-2 rounded-lg border border-border p-4">
+            {/* Author row */}
+            <div className="flex items-center gap-2">
+                <Avatar className="h-5 w-5">
+                    {post.author.avatar && (
+                        <AvatarImage
+                            src={post.author.avatar}
+                            alt={post.author.username}
+                        />
+                    )}
+                    <AvatarFallback className="text-[9px]">
+                        {getInitials(post.author.username)}
+                    </AvatarFallback>
+                </Avatar>
+                <span className="text-xs text-muted-foreground">
+                    {post.author.username} · {post.community.name} ·{' '}
+                    {formatRelativeTime(post.created_at)}
+                </span>
             </div>
 
-            {/* Content column */}
-            <div className="flex flex-1 flex-col gap-1.5 min-w-0">
-                <div className="flex items-center gap-2">
-                    <Avatar className="h-5 w-5">
-                        {post.author.avatar && <AvatarImage src={post.author.avatar} alt={post.author.username} />}
-                        <AvatarFallback className="text-[9px]">{getInitials(post.author.username)}</AvatarFallback>
-                    </Avatar>
-                    <span className="text-xs text-muted-foreground">
-                        {post.author.username} · {post.community.name} · {formatRelativeTime(post.created_at)}
+            <h3 className="text-sm font-semibold leading-snug">{post.title}</h3>
+
+            {/* Tags — above content now */}
+            {post.tags.length > 0 && (
+                <div className="flex flex-wrap gap-1">
+                    {post.tags.map((tag) => (
+                        <Badge
+                            key={tag}
+                            variant="secondary"
+                            className="text-[10px] px-1.5 py-0"
+                        >
+                            {tag}
+                        </Badge>
+                    ))}
+                </div>
+            )}
+
+            <div className="prose prose-sm dark:prose-invert max-w-none text-sm leading-snug [&>*]:my-1">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {post.content}
+                </ReactMarkdown>
+            </div>
+
+            {post.media && post.media.length > 0 && (
+                <div
+                    className={`grid gap-2 ${post.media.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}
+                >
+                    {post.media.map((item) => (
+                        <div
+                            key={item.id}
+                            className="relative aspect-video overflow-hidden rounded-md border border-border"
+                        >
+                            {item.type === 'image' ? (
+                                <Image
+                                    src={item.url}
+                                    alt={item.alt ?? ''}
+                                    fill
+                                    className="object-cover"
+                                />
+                            ) : (
+                                <video
+                                    src={item.url}
+                                    controls
+                                    className="h-full w-full object-cover"
+                                />
+                            )}
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {/* Footer — votes left, counters right */}
+            <div className="flex items-center justify-between pt-1">
+                <div className="flex items-center gap-1">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className={cn(
+                            'h-6 w-6',
+                            userVote === 1 && 'text-orange-500'
+                        )}
+                        onClick={() => handleVote(1)}
+                        disabled={voting}
+                    >
+                        <ArrowBigUp className="h-4 w-4" />
+                    </Button>
+                    <span className="min-w-[2ch] text-center text-xs font-medium">
+                        {score}
                     </span>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className={cn(
+                            'h-6 w-6',
+                            userVote === -1 && 'text-blue-500'
+                        )}
+                        onClick={() => handleVote(-1)}
+                        disabled={voting}
+                    >
+                        <ArrowBigDown className="h-4 w-4" />
+                    </Button>
                 </div>
 
-                <h3 className="text-sm font-semibold leading-snug">{post.title}</h3>
-
-                <div className="prose prose-sm dark:prose-invert max-w-none text-sm leading-snug [&>*]:my-1">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{post.content}</ReactMarkdown>
-                </div>
-
-                {post.media && post.media.length > 0 && (
-                    <div className={`grid gap-2 ${post.media.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
-                        {post.media.map((item) => (
-                            <div key={item.id} className="relative aspect-video overflow-hidden rounded-md border border-border">
-                                {item.type === 'image' ? (
-                                    <Image src={item.url} alt={item.alt ?? ''} fill className="object-cover" />
-                                ) : (
-                                    <video src={item.url} controls className="h-full w-full object-cover" />
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                )}
-
-                {post.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1">
-                        {post.tags.map((tag) => (
-                            <Badge key={tag} variant="secondary" className="text-[10px] px-1.5 py-0">
-                                {tag}
-                            </Badge>
-                        ))}
-                    </div>
-                )}
-
-                <div className="flex items-center gap-3 text-xs text-muted-foreground pt-0.5">
+                <div className="flex items-center gap-3 text-xs text-muted-foreground">
                     <span className="flex items-center gap-1">
                         <MessageSquare className="h-3.5 w-3.5" />
                         {post.comment_count}
