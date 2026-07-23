@@ -1,18 +1,17 @@
 'use client';
-
 import { useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-
 import {
     Tooltip,
     TooltipContent,
     TooltipProvider,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { Separator } from '@/components/ui/separator';
 import {
     Home,
     BookOpen,
@@ -23,31 +22,36 @@ import {
     LibraryBig,
     Handshake,
     Users,
+    Hash,
 } from 'lucide-react';
+import { useCommunities } from '@/lib/use-communities';
+
 const navItems = [
     { label: 'Home', href: '/home', icon: Home },
-    { label: 'Trending', href: '/trending', icon: Zap },
+    { label: 'Alerts', href: '/alerts', icon: Zap },
     { label: 'Explore', href: '/explore', icon: Handshake },
-    { label: 'Resources', href: '/notes', icon: LibraryBig },
-    { label: 'History', href: '/resources', icon: BookOpen },
+    { label: 'Resources', href: '/resources', icon: LibraryBig },
+    { label: 'Ardvetisments', href: '/advertisements', icon: BookOpen },
     { label: 'Messages', href: '/chats', icon: MessageCircle },
-    { label: 'Following', href: '/chats', icon: Users },
+    { label: 'Following', href: '/following', icon: Users },
 ];
 
 export function Sidebar() {
     const pathname = usePathname();
     const [collapsed, setCollapsed] = useState(false);
+    const { communities } = useCommunities();
+    const joined = communities.filter((c) => c.is_member);
 
     return (
         <TooltipProvider delayDuration={0}>
             <aside
                 className={cn(
                     'relative flex h-screen flex-col',
-                    'bg-background/80 backdrop-blur-md',
+                    'bg-gradient-to-b from-background/95 to-background/80 backdrop-blur-md',
                     'border-r border-border',
-                    'shadow-xl transition-all duration-300 ease-in-out',
+                    'shadow-2xl transition-all duration-300 ease-in-out',
                     'pt-3',
-                    collapsed ? 'w-[68px]' : 'w-[220px]'
+                    collapsed ? 'w-[72px]' : 'w-[260px]'
                 )}
             >
                 <div className="flex h-[64px] items-center gap-3 overflow-hidden px-4 flex-shrink-0">
@@ -84,7 +88,8 @@ export function Sidebar() {
                                 className={cn(
                                     'w-full justify-start gap-3 px-3 mb-4 h-13',
                                     collapsed && 'justify-center px-0',
-                                    isActive && 'font-semibold text-primary'
+                                    isActive &&
+                                    'font-semibold text-primary shadow-sm'
                                 )}
                             >
                                 <Link href={href}>
@@ -112,7 +117,69 @@ export function Sidebar() {
                             btn
                         );
                     })}
+
+                    {/* Joined communities */}
+                    {joined.length > 0 && (
+                        <>
+                            <Separator className="my-2" />
+                            {!collapsed && (
+                                <p className="px-3 pb-1 text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
+                                    Your communities
+                                </p>
+                            )}
+                            {joined.map((community) => {
+                                const href = `/c/${community.name}`;
+                                const isActive = pathname === href;
+
+                                const btn = (
+                                    <Button
+                                        key={community.id}
+                                        variant={
+                                            isActive ? 'secondary' : 'ghost'
+                                        }
+                                        asChild
+                                        className={cn(
+                                            'w-full justify-start gap-3 px-3 mb-2 h-10',
+                                            collapsed && 'justify-center px-0',
+                                            isActive &&
+                                            'font-semibold text-primary'
+                                        )}
+                                    >
+                                        <Link href={href}>
+                                            <Hash
+                                                className={cn(
+                                                    'h-4 w-4 flex-shrink-0',
+                                                    isActive
+                                                        ? 'text-primary'
+                                                        : 'text-muted-foreground'
+                                                )}
+                                            />
+                                            {!collapsed && (
+                                                <span className="truncate text-sm">
+                                                    {community.name}
+                                                </span>
+                                            )}
+                                        </Link>
+                                    </Button>
+                                );
+
+                                return collapsed ? (
+                                    <Tooltip key={community.id}>
+                                        <TooltipTrigger asChild>
+                                            {btn}
+                                        </TooltipTrigger>
+                                        <TooltipContent side="right">
+                                            {community.name}
+                                        </TooltipContent>
+                                    </Tooltip>
+                                ) : (
+                                    btn
+                                );
+                            })}
+                        </>
+                    )}
                 </nav>
+
                 <Button
                     variant="outline"
                     size="icon"

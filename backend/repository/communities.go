@@ -16,7 +16,7 @@ func GetAllCommunities(userID uint) ([]models.Community, error) {
 		return nil, err
 	}
 	for i := range communities {
-		enrichCommunity(&communities[i], userID)
+		EnrichCommunity(&communities[i], userID)
 	}
 	return communities, nil
 }
@@ -40,6 +40,18 @@ func LeaveCommunity(userID, communityID uint) error {
 }
 
 func enrichCommunity(c *models.Community, userID uint) {
+	var count int64
+	database.DB.Model(&models.CommunityMember{}).Where("community_id = ?", c.ID).Count(&count)
+	c.MemberCount = int(count)
+
+	if userID != 0 {
+		var existing models.CommunityMember
+		err := database.DB.Where("user_id = ? AND community_id = ?", userID, c.ID).First(&existing).Error
+		c.IsMember = err == nil
+	}
+}
+
+func EnrichCommunity(c *models.Community, userID uint) {
 	var count int64
 	database.DB.Model(&models.CommunityMember{}).Where("community_id = ?", c.ID).Count(&count)
 	c.MemberCount = int(count)

@@ -20,7 +20,8 @@ export type Comment = {
     user_vote: number;
 };
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
+const API_BASE =
+    process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
 export default function PostPage() {
     const params = useParams();
@@ -38,7 +39,9 @@ export default function PostPage() {
     }, [postId]);
 
     const fetchComments = useCallback(() => {
-        fetch(`${API_BASE}/posts/${postId}/comments`, { credentials: 'include' })
+        fetch(`${API_BASE}/posts/${postId}/comments`, {
+            credentials: 'include',
+        })
             .then((res) => (res.ok ? res.json() : []))
             .then(setComments)
             .finally(() => setLoading(false));
@@ -59,34 +62,47 @@ export default function PostPage() {
     }
 
     return (
-        <div className="mx-auto flex w-full max-w-2xl flex-col gap-4">
-            <PostCard post={post} bordered={false} />
+        <div className="h-full overflow-y-auto">
+            <div className="mx-auto flex w-full max-w-2xl flex-col gap-4">
+                <PostCard post={post} bordered={false} />
 
-            <Separator />
+                <Separator />
 
-            <div className="flex flex-col gap-3">
-                <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-semibold">
-                        {comments.length} comment{comments.length !== 1 ? 's' : ''}
-                    </h3>
-                    {!composing && (
-                        <Button variant="ghost" size="sm" className="gap-1.5" onClick={() => setComposing(true)}>
-                            <MessageSquare className="h-3.5 w-3.5" />
-                            Reply
-                        </Button>
+                <div className="flex flex-col gap-3">
+                    <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-semibold">
+                            {comments.length} comment
+                            {comments.length !== 1 ? 's' : ''}
+                        </h3>
+                        {!composing && (
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="gap-1.5"
+                                onClick={() => setComposing(true)}
+                            >
+                                <MessageSquare className="h-3.5 w-3.5" />
+                                Reply
+                            </Button>
+                        )}
+                    </div>
+
+                    {composing && (
+                        <CommentComposer
+                            postId={post.id}
+                            parentId={null}
+                            onCommentAdded={handleCommentAdded}
+                            onCancel={() => setComposing(false)}
+                        />
                     )}
-                </div>
 
-                {composing && (
-                    <CommentComposer
-                        postId={post.id}
+                    <CommentThread
+                        comments={comments}
                         parentId={null}
+                        postId={post.id}
                         onCommentAdded={handleCommentAdded}
-                        onCancel={() => setComposing(false)}
                     />
-                )}
-
-                <CommentThread comments={comments} parentId={null} postId={post.id} onCommentAdded={handleCommentAdded} />
+                </div>
             </div>
         </div>
     );

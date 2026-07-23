@@ -5,6 +5,7 @@ import { TopBar, NavItem } from '@/components/web/topbar-logic';
 import { Bot, Search, User } from 'lucide-react';
 import { AuthCard } from '@/components/web/auth';
 import { UserMenu } from '@/components/web/user-menu';
+import { SearchDialog } from '@/components/web/search-dialog';
 import { Sidebar } from '@/components/web/sidebar';
 import { useAuth } from '@/lib/auth-context';
 import { useBadges } from '@/lib/use-badges';
@@ -12,10 +13,15 @@ import { getInitials } from '@/lib/utils';
 
 export default function Layout({ children }: { children: React.ReactNode }) {
     const [activePanel, setActivePanel] = useState<string | null>(null);
+    const [searchOpen, setSearchOpen] = useState(false);
     const { user, logout, loading } = useAuth();
-    const badges = useBadges(); // NEW
+    const badges = useBadges();
 
     const toggle = (key: string) => {
+        if (key === 'search') {
+            setSearchOpen(true);
+            return;
+        }
         setActivePanel((prev) => (prev === key ? null : key));
     };
 
@@ -38,16 +44,16 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <TooltipProvider delayDuration={0}>
             <div className="flex h-screen w-full overflow-hidden">
                 <Sidebar />
-                <div className="flex flex-1 flex-col overflow-y-auto">
+                <div className="flex flex-1 flex-col overflow-hidden">
                     <div className="flex items-center p-2">
                         <TopBar
                             contents={myLinks}
                             activeKey={activePanel}
                             onSelectAction={toggle}
-                            badges={badges} // NEW
+                            badges={badges}
                         />
                     </div>
-                    <div className="flex-1 p-6 text-white relative">
+                    <div className="flex-1 overflow-hidden p-6 text-white relative">
                         {children}
                         {user ? (
                             <UserMenu
@@ -71,6 +77,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                     </div>
                 </div>
             </div>
+            <SearchDialog open={searchOpen} setOpen={setSearchOpen} />
         </TooltipProvider>
     );
 }

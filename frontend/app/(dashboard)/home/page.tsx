@@ -4,8 +4,8 @@ import { useEffect, useState } from 'react';
 import { CreatePost } from '@/components/web/create-post';
 import { FilterBar } from '@/components/web/filter-bar';
 import { PostCard, Post } from '@/components/web/postCard';
-import { TrendingCard } from '@/components/web/trending-card';
-import { SuggestedCommunitiesCard } from '@/components/web/suggested-communities-card';
+import { SidebarWidget } from '@/components/web/sidebar-widget';
+import { FollowingBelt } from '@/components/web/following-belt';
 
 const API_BASE =
     process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
@@ -41,9 +41,11 @@ export default function HomePage() {
             );
 
     return (
-        <div className="mx-auto grid w-full max-w-6xl grid-cols-1 gap-6 lg:grid-cols-[minmax(0,640px)_300px]">
-            {/* Left column — posts */}
-            <div className="flex flex-col gap-3">
+        <div className="mx-auto grid h-full w-full max-w-7xl grid-cols-1 gap-8 lg:grid-cols-[minmax(0,820px)_360px]">
+            {/* Left column — scrolls independently */}
+            <div className="flex flex-col gap-4 overflow-y-auto pr-1">
+                <FollowingBelt />
+
                 <div className="flex items-center justify-between gap-4">
                     <FilterBar
                         active={activeFilter}
@@ -51,6 +53,7 @@ export default function HomePage() {
                     />
                     <CreatePost onPostCreated={handlePostCreated} />
                 </div>
+
                 {loading && (
                     <p className="text-sm text-muted-foreground">
                         Loading feed...
@@ -61,15 +64,15 @@ export default function HomePage() {
                         No posts yet — be the first.
                     </p>
                 )}
+
                 {filteredPosts.map((post) => (
                     <PostCard key={post.id} post={post} />
                 ))}
             </div>
 
-            {/* Right column — sidebar */}
-            <div className="hidden flex-col gap-4 lg:flex">
-                <TrendingCard />
-                <SuggestedCommunitiesCard />
+            {/* Right column — fixed, own height, no scroll */}
+            <div className="hidden lg:block">
+                <SidebarWidget posts={posts} />
             </div>
         </div>
     );

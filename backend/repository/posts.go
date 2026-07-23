@@ -1,4 +1,3 @@
-// repository/posts.go
 package repository
 
 import (
@@ -10,24 +9,27 @@ func CreatePost(post *models.Post) error {
 	return database.DB.Create(post).Error
 }
 
-// repository/posts.go — update enrichPost
 func enrichPost(post *models.Post, userID uint) {
 	post.Score = GetPostScore(post.ID)
-	post.CommentCount = GetCommentCount(post.ID) // was hardcoded 0 before
+	post.CommentCount = GetCommentCount(post.ID)
 	if userID != 0 {
 		post.UserVote = GetUserVote(userID, post.ID)
 	}
 }
 
-func GetFeed(limit, offset int, userID uint) ([]models.Post, error) {
+func GetFeed(limit, offset int, userID uint, communityName string) ([]models.Post, error) {
 	var posts []models.Post
-	err := database.DB.
+	query := database.DB.
 		Preload("Author").
 		Preload("Community").
-		Order("created_at DESC").
-		Limit(limit).
-		Offset(offset).
-		Find(&posts).Error
+		Order("created_at DESC")
+
+	if communityName != "" {
+		query = query.Joins("JOIN communities ON communities.id = posts.community_id").
+			Where("communities.name = ?", communityName)
+	}
+
+	err := query.Limit(limit).Offset(offset).Find(&posts).Error
 
 	for i := range posts {
 		enrichPost(&posts[i], userID)

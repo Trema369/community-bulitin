@@ -1,14 +1,13 @@
 'use client';
 import { useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { getInitials, cn } from '@/lib/utils';
 import { ArrowBigUp, ArrowBigDown, MessageSquare, Eye } from 'lucide-react';
-import Link from 'next/link';
 
 export interface Post {
     id: number;
@@ -33,8 +32,8 @@ export type PostMedia = {
 };
 
 type PostCardProps = {
-    post: Post
-    bordered?: boolean
+    post: Post;
+    bordered?: boolean;
 };
 
 const API_BASE =
@@ -86,8 +85,13 @@ export function PostCard({ post, bordered = true }: PostCardProps) {
     };
 
     return (
-        <div className={cn("flex flex-col gap-2", bordered && " rounded-lg border border-border p-4")}>
-            {/* Author row */}
+        <div
+            className={cn(
+                'flex flex-col gap-2',
+                bordered && 'rounded-lg border border-border p-4'
+            )}
+        >
+            {/* Meta row */}
             <div className="flex items-center gap-2">
                 <Avatar className="h-5 w-5">
                     {post.author.avatar && (
@@ -101,31 +105,24 @@ export function PostCard({ post, bordered = true }: PostCardProps) {
                     </AvatarFallback>
                 </Avatar>
                 <span className="text-xs text-muted-foreground">
-                    {post.author.username} · {post.community.name} ·{' '}
-                    {formatRelativeTime(post.created_at)}
+                    {post.author.username} ·{' '}
+                    <Link
+                        href={`/c/${post.community.name}`}
+                        className="hover:underline"
+                    >
+                        {post.community.name}
+                    </Link>{' '}
+                    · {formatRelativeTime(post.created_at)}
                 </span>
             </div>
 
             <Link href={`/post/${post.id}`}>
-                <h3 className="text-sm font-semibold leading-snug">{post.title}</h3>
+                <h3 className="text-sm font-semibold leading-snug hover:underline">
+                    {post.title}
+                </h3>
             </Link>
 
-            {/* Tags — above content now */}
-            {post.tags.length > 0 && (
-                <div className="flex flex-wrap gap-1">
-                    {post.tags.map((tag) => (
-                        <Badge
-                            key={tag}
-                            variant="secondary"
-                            className="text-[10px] px-1.5 py-0"
-                        >
-                            {tag}
-                        </Badge>
-                    ))}
-                </div>
-            )}
-
-            <div className="prose prose-sm dark:prose-invert max-w-none text-sm leading-snug [&>*]:my-1">
+            <div className="prose prose-sm dark:prose-invert max-w-none text-sm leading-snug [&>*]:my-0">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
                     {post.content}
                 </ReactMarkdown>

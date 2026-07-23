@@ -87,3 +87,22 @@ func LeaveCommunityHandler(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "left"})
 }
+
+func GetCommunityHandler(c *gin.Context) {
+	name := c.Param("name")
+
+	var userID uint
+	if uid, exists := c.Get("userID"); exists {
+		userID = uid.(uint)
+	}
+
+	community, err := repository.GetCommunityByName(name)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"message": "community not found"})
+		return
+	}
+
+	// enrich needs to be exported/reused — see note below
+	repository.EnrichCommunity(community, userID)
+	c.JSON(http.StatusOK, community)
+}

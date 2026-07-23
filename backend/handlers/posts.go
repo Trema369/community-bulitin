@@ -49,9 +49,11 @@ func CreatePostHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, full)
 }
 
+// handlers/posts.go
 func GetFeedHandler(c *gin.Context) {
 	limitStr := c.DefaultQuery("limit", "20")
 	offsetStr := c.DefaultQuery("offset", "0")
+	community := c.Query("community") // NEW — empty string if not provided
 
 	limit, err := strconv.Atoi(limitStr)
 	if err != nil || limit <= 0 {
@@ -67,7 +69,7 @@ func GetFeedHandler(c *gin.Context) {
 		userID = uid.(uint)
 	}
 
-	posts, err := repository.GetFeed(limit, offset, userID)
+	posts, err := repository.GetFeed(limit, offset, userID, community)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "failed to load feed"})
 		return
