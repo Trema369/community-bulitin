@@ -9,9 +9,9 @@ import (
 func CastVote(userID, postID uint, value int) (int, error) {
 	var existing models.Vote
 	err := database.DB.Where("user_id = ? AND post_id = ?", userID, postID).First(&existing).Error
-
 	if err != nil {
-		if err := database.DB.Create(&models.Vote{UserID: userID, PostID: postID, Value: value}).Error; err != nil {
+		v := models.Vote{UserID: userID, PostID: &postID, Value: value}
+		if err := database.DB.Create(&v).Error; err != nil {
 			return 0, err
 		}
 		return value, nil

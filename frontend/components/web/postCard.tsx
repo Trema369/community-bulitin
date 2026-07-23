@@ -8,6 +8,7 @@ import { Button } from '../ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { getInitials, cn } from '@/lib/utils';
 import { ArrowBigUp, ArrowBigDown, MessageSquare, Eye } from 'lucide-react';
+import Link from 'next/link';
 
 export interface Post {
     id: number;
@@ -31,7 +32,10 @@ export type PostMedia = {
     alt?: string;
 };
 
-type PostCardProps = { post: Post };
+type PostCardProps = {
+    post: Post
+    bordered?: boolean
+};
 
 const API_BASE =
     process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
@@ -48,7 +52,7 @@ function formatRelativeTime(dateStr: string): string {
     return `${days}d ago`;
 }
 
-export function PostCard({ post }: PostCardProps) {
+export function PostCard({ post, bordered = true }: PostCardProps) {
     const [score, setScore] = useState(post.score);
     const [userVote, setUserVote] = useState(post.user_vote);
     const [voting, setVoting] = useState(false);
@@ -82,7 +86,7 @@ export function PostCard({ post }: PostCardProps) {
     };
 
     return (
-        <div className="flex flex-col gap-2 rounded-lg border border-border p-4">
+        <div className={cn("flex flex-col gap-2", bordered && " rounded-lg border border-border p-4")}>
             {/* Author row */}
             <div className="flex items-center gap-2">
                 <Avatar className="h-5 w-5">
@@ -102,7 +106,9 @@ export function PostCard({ post }: PostCardProps) {
                 </span>
             </div>
 
-            <h3 className="text-sm font-semibold leading-snug">{post.title}</h3>
+            <Link href={`/post/${post.id}`}>
+                <h3 className="text-sm font-semibold leading-snug">{post.title}</h3>
+            </Link>
 
             {/* Tags — above content now */}
             {post.tags.length > 0 && (

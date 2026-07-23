@@ -10,18 +10,10 @@ func CreatePost(post *models.Post) error {
 	return database.DB.Create(post).Error
 }
 
-func GetCommunityByName(name string) (*models.Community, error) {
-	var community models.Community
-	err := database.DB.Where("name = ?", name).First(&community).Error
-	if err != nil {
-		return nil, err
-	}
-	return &community, nil
-}
-
-// repository/posts.go
+// repository/posts.go — update enrichPost
 func enrichPost(post *models.Post, userID uint) {
 	post.Score = GetPostScore(post.ID)
+	post.CommentCount = GetCommentCount(post.ID) // was hardcoded 0 before
 	if userID != 0 {
 		post.UserVote = GetUserVote(userID, post.ID)
 	}

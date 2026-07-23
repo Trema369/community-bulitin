@@ -27,7 +27,7 @@ import {
 const navItems = [
     { label: 'Home', href: '/home', icon: Home },
     { label: 'Trending', href: '/trending', icon: Zap },
-    { label: 'Colonies', href: '/classes', icon: Handshake },
+    { label: 'Explore', href: '/explore', icon: Handshake },
     { label: 'Resources', href: '/notes', icon: LibraryBig },
     { label: 'History', href: '/resources', icon: BookOpen },
     { label: 'Messages', href: '/chats', icon: MessageCircle },

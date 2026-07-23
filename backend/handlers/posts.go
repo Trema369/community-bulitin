@@ -48,6 +48,7 @@ func CreatePostHandler(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, full)
 }
+
 func GetFeedHandler(c *gin.Context) {
 	limitStr := c.DefaultQuery("limit", "20")
 	offsetStr := c.DefaultQuery("offset", "0")
@@ -73,4 +74,27 @@ func GetFeedHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, posts)
+}
+
+// handlers/posts.go — add this handler
+func GetPostHandler(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "invalid post id"})
+		return
+	}
+
+	var userID uint
+	if uid, exists := c.Get("userID"); exists {
+		userID = uid.(uint)
+	}
+
+	post, err := repository.GetPostByID(uint(id), userID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"message": "post not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, post)
 }

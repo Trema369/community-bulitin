@@ -29,7 +29,7 @@ type CreatePostProps = {
 };
 
 export function CreatePost({ onPostCreated }: CreatePostProps) {
-    const communities = useCommunities();
+    const { communities } = useCommunities();
     const [open, setOpen] = useState(false);
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
