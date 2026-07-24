@@ -4,12 +4,13 @@ import "com-hub/models"
 
 func Init() {
 	Connect()
+
+	// database/init.go
 	DB.AutoMigrate(
 		&models.User{}, &models.Badge{}, &models.UserBadge{},
 		&models.Community{}, &models.CommunityMember{},
 		&models.Post{}, &models.Vote{}, &models.Comment{},
-		&models.Alert{}, &models.Advertisement{}, &models.Follow{},
-		&models.Conversation{}, &models.Message{}, // Conversation added
+		&models.Resource{}, &models.FlashcardCard{}, // NEW
 	)
 	DB.Exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_conversation_pair ON conversations (user_a_id, user_b_id)`)
 	DB.Exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_follower_following ON follows (follower_id, following_id)`)

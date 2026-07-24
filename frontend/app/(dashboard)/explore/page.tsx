@@ -12,10 +12,12 @@ import {
     DialogTrigger,
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Search, Users } from 'lucide-react';
+import { Plus, Users } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
-const API_BASE =
-    process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
+
+const FILTERS = ['All', 'Trending', 'Gaming', 'Music', 'Tech', 'Art'];
 
 function CreateCommunityDialog({ onCreated }: { onCreated: () => void }) {
     const [open, setOpen] = useState(false);
@@ -40,18 +42,13 @@ function CreateCommunityDialog({ onCreated }: { onCreated: () => void }) {
                 body: JSON.stringify({ name, description }),
             });
             const payload = await res.json();
-            if (!res.ok)
-                throw new Error(
-                    payload?.message ?? 'Failed to create community'
-                );
+            if (!res.ok) throw new Error(payload?.message ?? 'Failed to create community');
             setName('');
             setDescription('');
             setOpen(false);
             onCreated();
         } catch (err) {
-            setError(
-                err instanceof Error ? err.message : 'Something went wrong'
-            );
+            setError(err instanceof Error ? err.message : 'Something went wrong');
         } finally {
             setSubmitting(false);
         }
@@ -70,11 +67,7 @@ function CreateCommunityDialog({ onCreated }: { onCreated: () => void }) {
                     <DialogTitle>Create a community</DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                    <Input
-                        placeholder="Community name"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                    />
+                    <Input placeholder="Community name" value={name} onChange={(e) => setName(e.target.value)} />
                     <Textarea
                         placeholder="What's this community about?"
                         value={description}
@@ -91,20 +84,39 @@ function CreateCommunityDialog({ onCreated }: { onCreated: () => void }) {
     );
 }
 
+function FilterBelt({ active, onSelect }: { active: string; onSelect: (f: string) => void }) {
+    return (
+        <div className="flex flex-wrap items-center gap-2">
+            {FILTERS.map((filter) => (
+                <Button
+                    key={filter}
+                    size="sm"
+                    variant={active === filter ? 'default' : 'outline'}
+                    className={cn('rounded-full', active === filter && 'font-semibold')}
+                    onClick={() => onSelect(filter)}
+                >
+                    {filter}
+                </Button>
+            ))}
+        </div>
+    );
+}
+
 export default function ExplorePage() {
     const { communities, loading, refresh } = useCommunities();
-    const [search, setSearch] = useState('');
+    const [activeFilter, setActiveFilter] = useState('All');
     const [joiningId, setJoiningId] = useState<number | null>(null);
 
-    const filtered = communities.filter(
-        (c) =>
-            c.name.toLowerCase().includes(search.toLowerCase()) ||
-            c.description.toLowerCase().includes(search.toLowerCase())
-    );
+    const filtered =
+        activeFilter === 'All'
+            ? communities
+            : communities.filter(
+                (c) =>
+                    c.name.toLowerCase().includes(activeFilter.toLowerCase()) ||
+                    c.description.toLowerCase().includes(activeFilter.toLowerCase())
+            );
 
-    const toggleMembership = async (
-        community: (typeof communities)[number]
-    ) => {
+    const toggleMembership = async (community: (typeof communities)[number]) => {
         setJoiningId(community.id);
         const endpoint = community.is_member ? 'leave' : 'join';
         try {
@@ -120,63 +132,47 @@ export default function ExplorePage() {
 
     return (
         <div className="h-full overflow-y-auto">
-            <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
+            <div className="mx-auto flex w-full max-w-5xl flex-col gap-4">
                 <div className="flex items-center justify-between gap-4">
-                    <h1 className="text-xl font-bold">Explore communities</h1>
+                    <h1 className="text-3xl font-bold">Explore communities</h1>
                     <CreateCommunityDialog onCreated={refresh} />
                 </div>
 
-                <div className="relative">
-                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                        placeholder="Search communities..."
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        className="pl-9"
-                    />
-                </div>
+                <FilterBelt active={activeFilter} onSelect={setActiveFilter} />
 
-                {loading && (
-                    <p className="text-sm text-muted-foreground">
-                        Loading communities...
-                    </p>
-                )}
+                {loading && <p className="text-sm text-muted-foreground">Loading communities...</p>}
 
                 {!loading && filtered.length === 0 && (
-                    <p className="text-sm text-muted-foreground">
-                        No communities found.
-                    </p>
+                    <p className="text-sm text-muted-foreground">No communities found.</p>
                 )}
 
-                <div className="flex flex-col gap-2">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                     {filtered.map((community) => (
                         <div
                             key={community.id}
-                            className="flex items-center justify-between gap-4 rounded-lg border border-border p-4"
+                            className="flex flex-col gap-2 rounded-lg border border-border p-4"
                         >
                             <div className="flex flex-col gap-0.5">
-                                <span className="font-semibold">
-                                    {community.name}
-                                </span>
-                                <span className="text-sm text-muted-foreground">
+                                <span className="font-semibold">{community.name}</span>
+                                <span className="text-sm text-muted-foreground line-clamp-2">
                                     {community.description}
                                 </span>
+                            </div>
+
+                            <div className="mt-auto flex items-center justify-between pt-2">
                                 <span className="flex items-center gap-1 text-xs text-muted-foreground">
                                     <Users className="h-3 w-3" />
-                                    {community.member_count} member
-                                    {community.member_count !== 1 ? 's' : ''}
+                                    {community.member_count} member{community.member_count !== 1 ? 's' : ''}
                                 </span>
+                                <Button
+                                    variant={community.is_member ? 'outline' : 'default'}
+                                    size="sm"
+                                    onClick={() => toggleMembership(community)}
+                                    disabled={joiningId === community.id}
+                                >
+                                    {community.is_member ? 'Joined' : 'Join'}
+                                </Button>
                             </div>
-                            <Button
-                                variant={
-                                    community.is_member ? 'outline' : 'default'
-                                }
-                                size="sm"
-                                onClick={() => toggleMembership(community)}
-                                disabled={joiningId === community.id}
-                            >
-                                {community.is_member ? 'Joined' : 'Join'}
-                            </Button>
                         </div>
                     ))}
                 </div>

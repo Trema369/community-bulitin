@@ -1,10 +1,11 @@
 package main
 
 import (
-	"com-hub/database"
-	"com-hub/routes"
 	"fmt"
 	"time"
+
+	"com-hub/database"
+	"com-hub/routes"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -23,6 +24,7 @@ func main() {
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}))
+	router.Static("/uploads", "./uploads")
 
 	routes.RegisterRoutes(router)
 

@@ -25,5 +25,7 @@ type Post struct {
 	Score        int `gorm:"-" json:"score"`
 	ViewCount    int `gorm:"-" json:"view_count"`
 	CommentCount int `gorm:"-" json:"comment_count"`
-	UserVote     int `gorm:"-" json:"user_vote"`
+	//	Media []PostMedia `json:"media" gorm:"foreignKey:PostID"`
+
+	UserVote int `gorm:"-" json:"user_vote"`
 }

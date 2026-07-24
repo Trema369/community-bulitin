@@ -39,4 +39,18 @@ func RegisterRoutes(r *gin.Engine) {
 	r.GET("/users", handlers.OptionalAuthMiddleware(), handlers.SearchUsersHandler)
 	r.GET("/users/:id", handlers.OptionalAuthMiddleware(), handlers.GetUserByIDHandler)
 	r.GET("/search", handlers.OptionalAuthMiddleware(), handlers.SearchHandler)
+	r.GET("/resources", handlers.OptionalAuthMiddleware(), handlers.GetResourcesHandler)
+	r.POST("/resources", handlers.AuthMiddleware(), handlers.CreateResourceHandler)
+	r.GET("/resources/:id", handlers.GetResourceHandler)
+	r.GET("/resources/code/:code", handlers.GetResourceByCodeHandler)
+	r.POST("/ai/generate/flashcards", handlers.AuthMiddleware(), handlers.GenerateFlashcardsHandler)
+	r.POST("/ai/generate/note", handlers.AuthMiddleware(), handlers.GenerateNoteHandler)
+	// routes
+	r.POST("/resources/:id/cards", handlers.AuthMiddleware(), handlers.AddCardHandler)
+	r.PUT("/resources/:id/cards/:cardId", handlers.AuthMiddleware(), handlers.UpdateCardHandler)
+	r.DELETE("/resources/:id/cards/:cardId", handlers.AuthMiddleware(), handlers.DeleteCardHandler)
+	// main.go — add this alongside your other router setup
+
+	r.POST("/uploads/media", handlers.AuthMiddleware(), handlers.UploadMediaHandler)
+	r.POST("/uploads/extract-text", handlers.AuthMiddleware(), handlers.ExtractTextHandler)
 }
