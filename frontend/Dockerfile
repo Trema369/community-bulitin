@@ -3,17 +3,13 @@ FROM node:22-alpine AS base
 FROM base AS deps
 WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
-# Corepack downloads pnpm and approves the required build scripts before installing
-RUN corepack enable && \
-    pnpm config set ignore-scripts false && \
-    pnpm approve-builds --all && \
-    pnpm install --frozen-lockfile
+# Force pnpm to execute lifecycle scripts for sharp/unrs-resolver during install
+RUN corepack enable && pnpm install --frozen-lockfile --config.ignore-scripts=false
 
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-# Corepack enabled to run pnpm build reliably
 RUN corepack enable && pnpm build
 
 FROM base AS runner
