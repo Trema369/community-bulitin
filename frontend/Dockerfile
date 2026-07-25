@@ -2,12 +2,9 @@ FROM node:22-alpine AS base
 
 FROM base AS deps
 WORKDIR /app
-COPY package.json pnpm-lock.yaml ./
-# Explicitly authorize sharp and unrs-resolver in pnpm config before running install
-RUN corepack enable && \
-    pnpm config set "onlyBuiltDependencies[]" "sharp" && \
-    pnpm config set "onlyBuiltDependencies[]" "unrs-resolver" && \
-    pnpm install --frozen-lockfile
+# COPY pnpm-workspace.yaml alongside package.json and lockfile
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN corepack enable && pnpm install --frozen-lockfile
 
 FROM base AS builder
 WORKDIR /app
