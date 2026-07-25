@@ -32,6 +32,10 @@ RUN apk add --no-cache curl
 
 ENV NODE_ENV=production
 ENV PORT=3000
+# Docker auto-sets HOSTNAME to the container ID, which Next's standalone
+# server reads as its bind address — override it so the app listens on
+# all interfaces instead of an unreachable container-ID hostname.
+ENV HOSTNAME=0.0.0.0
 
 # 1. Copy public assets
 COPY --from=builder /app/public ./public
