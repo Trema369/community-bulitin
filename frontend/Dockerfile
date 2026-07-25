@@ -1,8 +1,11 @@
 # --- BASE STAGE ---
 FROM node:22-alpine AS base
-# Prepare pnpm once here so downstream stages reuse it from the image layer
-# instead of each independently re-downloading it from the registry.
-RUN corepack enable && corepack prepare pnpm --activate
+WORKDIR /app
+# Prepare the pnpm version pinned in package.json's "packageManager" field
+# once here so downstream stages reuse it from the image layer instead of
+# each independently re-downloading it from the registry.
+COPY package.json ./
+RUN corepack enable && corepack prepare --activate
 
 # --- DEPS STAGE ---
 FROM base AS deps
