@@ -32,13 +32,17 @@ func GetAlertByID(id uint, userID uint) (*models.Alert, error) {
 	return &alert, nil
 }
 
-func GetAlerts(communityName string, userID uint) ([]models.Alert, error) {
+func GetAlerts(communityName, kind string, userID uint) ([]models.Alert, error) {
 	var alerts []models.Alert
 	query := database.DB.Preload("Author").Preload("Community").Order("created_at DESC")
 
 	if communityName != "" {
 		query = query.Joins("JOIN communities ON communities.id = alerts.community_id").
 			Where("communities.name = ?", communityName)
+	}
+
+	if kind != "" {
+		query = query.Where("alerts.kind = ?", kind)
 	}
 
 	if err := query.Find(&alerts).Error; err != nil {
@@ -68,9 +72,11 @@ func enrichAlert(a *models.Alert, userID uint) {
 }
 
 func CastAlertVote(userID, alertID uint, value int) (int, error) {
-	var existing models.Vote
-	err := database.DB.Where("user_id = ? AND alert_id = ?", userID, alertID).First(&existing).Error
-	if err != nil {
+	// no existing vote is the normal case; Find avoids logging it as an error
+	var found []models.Vote
+	database.DB.Where("user_id = ? AND alert_id = ?", userID, alertID).Limit(1).Find(&found)
+
+	if len(found) == 0 {
 		v := models.Vote{UserID: userID, AlertID: &alertID, Value: value}
 		if err := database.DB.Create(&v).Error; err != nil {
 			return 0, err
@@ -78,6 +84,9 @@ func CastAlertVote(userID, alertID uint, value int) (int, error) {
 		return value, nil
 	}
 
+	existing := found[0]
+
+	// voting the same way twice takes the vote back
 	if existing.Value == value {
 		if err := database.DB.Delete(&existing).Error; err != nil {
 			return 0, err

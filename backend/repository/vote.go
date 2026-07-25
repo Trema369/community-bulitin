@@ -7,9 +7,11 @@ import (
 )
 
 func CastVote(userID, postID uint, value int) (int, error) {
-	var existing models.Vote
-	err := database.DB.Where("user_id = ? AND post_id = ?", userID, postID).First(&existing).Error
-	if err != nil {
+	// no existing vote is the normal case; Find avoids logging it as an error
+	var found []models.Vote
+	database.DB.Where("user_id = ? AND post_id = ?", userID, postID).Limit(1).Find(&found)
+
+	if len(found) == 0 {
 		v := models.Vote{UserID: userID, PostID: &postID, Value: value}
 		if err := database.DB.Create(&v).Error; err != nil {
 			return 0, err
@@ -17,6 +19,9 @@ func CastVote(userID, postID uint, value int) (int, error) {
 		return value, nil
 	}
 
+	existing := found[0]
+
+	// voting the same way twice takes the vote back
 	if existing.Value == value {
 		if err := database.DB.Delete(&existing).Error; err != nil {
 			return 0, err

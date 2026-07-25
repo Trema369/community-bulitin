@@ -5,6 +5,7 @@ export type Community = {
     id: number;
     name: string;
     description: string;
+    rules: string[] | null;
     creator: { id: number; username: string };
     member_count: number;
     is_member: boolean;

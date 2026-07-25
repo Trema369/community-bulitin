@@ -11,9 +11,11 @@ func AwardBadge(userID uint, badgeKey string) error {
 		return err
 	}
 
-	var existing models.UserBadge
-	err := database.DB.Where("user_id = ? AND badge_id = ?", userID, badge.ID).First(&existing).Error
-	if err == nil {
+	// Find rather than First: a missing row is the normal case here, and First
+	// logs it as an error on every check.
+	var existing []models.UserBadge
+	database.DB.Where("user_id = ? AND badge_id = ?", userID, badge.ID).Limit(1).Find(&existing)
+	if len(existing) > 0 {
 		return nil
 	}
 

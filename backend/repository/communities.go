@@ -4,6 +4,8 @@ package repository
 import (
 	"com-hub/database"
 	"com-hub/models"
+
+	"github.com/lib/pq"
 )
 
 func CreateCommunity(community *models.Community) error {
@@ -23,11 +25,26 @@ func GetAllCommunities(userID uint) ([]models.Community, error) {
 
 func GetCommunityByName(name string) (*models.Community, error) {
 	var community models.Community
-	err := database.DB.Where("name = ?", name).First(&community).Error
+	err := database.DB.Preload("Creator").Where("name = ?", name).First(&community).Error
 	if err != nil {
 		return nil, err
 	}
 	return &community, nil
+}
+
+func GetCommunityByID(id uint) (*models.Community, error) {
+	var community models.Community
+	err := database.DB.Preload("Creator").First(&community, id).Error
+	if err != nil {
+		return nil, err
+	}
+	return &community, nil
+}
+
+func UpdateCommunityRules(communityID uint, rules []string) error {
+	return database.DB.Model(&models.Community{}).
+		Where("id = ?", communityID).
+		Update("rules", pq.StringArray(rules)).Error
 }
 
 func JoinCommunity(userID, communityID uint) error {
@@ -37,18 +54,6 @@ func JoinCommunity(userID, communityID uint) error {
 
 func LeaveCommunity(userID, communityID uint) error {
 	return database.DB.Where("user_id = ? AND community_id = ?", userID, communityID).Delete(&models.CommunityMember{}).Error
-}
-
-func enrichCommunity(c *models.Community, userID uint) {
-	var count int64
-	database.DB.Model(&models.CommunityMember{}).Where("community_id = ?", c.ID).Count(&count)
-	c.MemberCount = int(count)
-
-	if userID != 0 {
-		var existing models.CommunityMember
-		err := database.DB.Where("user_id = ? AND community_id = ?", userID, c.ID).First(&existing).Error
-		c.IsMember = err == nil
-	}
 }
 
 func EnrichCommunity(c *models.Community, userID uint) {

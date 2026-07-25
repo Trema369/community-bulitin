@@ -2,12 +2,14 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'next/navigation';
+import Link from 'next/link';
 import { PostCard, Post } from '@/components/web/postCard';
 import { CommentThread } from '@/components/web/comment-thread';
 import { CommentComposer } from '@/components/web/comment-composer';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
-import { MessageSquare } from 'lucide-react';
+import { MessageSquare, Home, ChevronRight } from 'lucide-react';
+import { recordPostVisit } from '@/lib/use-recently-visited';
 
 export type Comment = {
     id: number;
@@ -52,6 +54,11 @@ export default function PostPage() {
         fetchComments();
     }, [fetchPost, fetchComments]);
 
+    // feeds the "Recently visited" card on home
+    useEffect(() => {
+        if (post) recordPostVisit(post);
+    }, [post]);
+
     const handleCommentAdded = (comment: Comment) => {
         setComments((prev) => [...prev, comment]);
         setComposing(false);
@@ -64,7 +71,23 @@ export default function PostPage() {
     return (
         <div className="h-full overflow-y-auto">
             <div className="mx-auto flex w-full max-w-2xl flex-col gap-4">
-                <PostCard post={post} bordered={false} />
+                {/* breadcrumb back out of the thread */}
+                <div className="flex items-center gap-1">
+                    <Button variant="ghost" size="sm" className="gap-1.5" asChild>
+                        <Link href="/home">
+                            <Home className="h-4 w-4" />
+                            Home
+                        </Link>
+                    </Button>
+                    <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
+                    <Button variant="ghost" size="sm" asChild>
+                        <Link href={`/c/${post.community.name}`}>
+                            {post.community.name}
+                        </Link>
+                    </Button>
+                </div>
+
+                <PostCard post={post} bordered={false} clickable={false} />
 
                 <Separator />
 

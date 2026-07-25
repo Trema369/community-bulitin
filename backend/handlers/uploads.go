@@ -2,6 +2,7 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 
 	"com-hub/uploads"
@@ -18,6 +19,10 @@ func UploadMediaHandler(c *gin.Context) {
 
 	url, mediaType, err := uploads.SaveFile(file)
 	if err != nil {
+		if errors.Is(err, uploads.ErrInvalidUpload) {
+			c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+			return
+		}
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "upload failed"})
 		return
 	}

@@ -40,10 +40,7 @@ func SignupHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "incorrect format"})
 		return
 	}
-	testBadges := []string{"pull-shark", "quickdraw", "yolo", "galaxy-brain", "starstruck"}
-	for _, key := range testBadges {
-		repository.AwardBadge(user.ID, key)
-	}
+	// badges are earned through activity — see repository/badge_rules.go
 	token, err := GenerateToken(user.ID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})

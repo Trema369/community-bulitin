@@ -6,7 +6,7 @@ import { FilterBar } from '@/components/web/filter-bar';
 import { PostCard, Post } from '@/components/web/postCard';
 import { TopAlertsCard } from '@/components/web/top-alerts-card';
 import { TrendingTopicsCard } from '@/components/web/trending-topics-card';
-import { RecentlyActiveCard } from '@/components/web/recently-active-card';
+import { RecentlyVisitedCard } from '@/components/web/recently-visited-card';
 import { FollowingBelt } from '@/components/web/following-belt';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
@@ -36,7 +36,9 @@ export default function HomePage() {
         activeFilter === 'All'
             ? posts
             : posts.filter((p) =>
-                p.tags.some((tag) => tag.toLowerCase() === activeFilter.toLowerCase())
+                (p.tags ?? []).some(
+                (tag) => tag.toLowerCase() === activeFilter.toLowerCase()
+            )
             );
 
     return (
@@ -68,7 +70,7 @@ export default function HomePage() {
                 <div className="hidden flex-col gap-4 overflow-y-auto lg:flex">
                     <TopAlertsCard />
                     <TrendingTopicsCard posts={posts} />
-                    <RecentlyActiveCard posts={posts} />
+                    <RecentlyVisitedCard />
                 </div>
             </div>
         </div>

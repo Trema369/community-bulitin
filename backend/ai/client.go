@@ -42,20 +42,39 @@ func getAPIKey() string {
 	return os.Getenv("MISTRAL_API_KEY")
 }
 
+// Message is one turn of a conversation.
+type Message struct {
+	Role    string `json:"role"` // "system", "user" or "assistant"
+	Content string `json:"content"`
+}
+
+// Chat sends a full conversation and returns the assistant's reply.
+func Chat(messages []Message) (string, error) {
+	turns := make([]contentMessage, len(messages))
+	for i, m := range messages {
+		turns[i] = contentMessage{Role: m.Role, Content: m.Content}
+	}
+	return send(requestBody{Messages: turns, Model: "mistral-large-latest"})
+}
+
 // Complete sends a single user prompt and returns the raw text response.
 // jsonMode forces Mistral to return valid JSON only (used for flashcards).
 func Complete(prompt string, jsonMode bool) (string, error) {
-	apiKey := getAPIKey()
-	if apiKey == "" {
-		return "", errors.New("MISTRAL_API_KEY not set")
-	}
-
 	body := requestBody{
 		Messages: []contentMessage{{Role: "user", Content: prompt}},
 		Model:    "mistral-large-latest",
 	}
 	if jsonMode {
 		body.ResponseFormat = &responseFormat{Type: "json_object"}
+	}
+	return send(body)
+}
+
+// send performs the request and unwraps the first choice.
+func send(body requestBody) (string, error) {
+	apiKey := getAPIKey()
+	if apiKey == "" {
+		return "", errors.New("MISTRAL_API_KEY not set")
 	}
 
 	jsonData, err := json.Marshal(body)

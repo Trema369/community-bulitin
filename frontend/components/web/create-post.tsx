@@ -18,40 +18,63 @@ import {
     SelectTrigger,
     SelectValue,
 } from '../ui/select';
-import { Plus } from 'lucide-react';
+import { Plus, Hash } from 'lucide-react';
 import { useCommunities } from '@/lib/use-communities';
+import { MediaPicker, type PostMediaInput } from './media-picker';
 import type { Post } from './postCard';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
 type CreatePostProps = {
     onPostCreated: (post: Post) => void;
+    /** Preselects (and locks) the community — used on a community's own page. */
+    defaultCommunity?: string;
 };
 
-export function CreatePost({ onPostCreated }: CreatePostProps) {
+export function CreatePost({
+    onPostCreated,
+    defaultCommunity,
+}: CreatePostProps) {
     const { communities } = useCommunities();
     const [open, setOpen] = useState(false);
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const [tagsInput, setTagsInput] = useState('');
-    const [community, setCommunity] = useState('');
+    const [community, setCommunity] = useState(defaultCommunity ?? '');
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [media, setMedia] = useState<PostMediaInput[]>([]);
+    const [uploading, setUploading] = useState(false);
+    // bumping this remounts the picker, which clears its previews after a post
+    const [pickerKey, setPickerKey] = useState(0);
 
     const resetForm = () => {
         setTitle('');
         setContent('');
         setTagsInput('');
-        setCommunity('');
+        setCommunity(defaultCommunity ?? '');
         setError(null);
+        setMedia([]);
+        setPickerKey((k) => k + 1);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
 
-        if (!title.trim() || !content.trim() || !community) {
-            setError('Title, content, and community are required.');
+        if (!title.trim() || !community) {
+            setError('Title and community are required.');
+            return;
+        }
+
+        // text is optional as long as something is attached
+        if (!content.trim() && media.length === 0) {
+            setError('Write something or attach a photo or video.');
+            return;
+        }
+
+        if (uploading) {
+            setError('Hang on — your attachments are still uploading.');
             return;
         }
 
@@ -63,7 +86,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
                 method: 'POST',
                 credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ title, content, tags, community }),
+                body: JSON.stringify({ title, content, tags, community, media }),
             });
             const payload = await res.json();
             if (!res.ok) throw new Error(payload?.message ?? 'Failed to create post');
@@ -91,26 +114,43 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
                     <DialogTitle>Create a post</DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                    <Select value={community} onValueChange={setCommunity}>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Choose a community" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {communities.map((c) => (
-                                <SelectItem key={c.id} value={c.name}>
-                                    {c.name}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                    {defaultCommunity ? (
+                        <div className="flex items-center gap-2 rounded-lg bg-brand-soft px-3 py-2 text-sm">
+                            <Hash className="h-4 w-4 text-primary" />
+                            <span className="font-medium">{defaultCommunity}</span>
+                            <span className="text-muted-foreground">
+                                — posting here
+                            </span>
+                        </div>
+                    ) : (
+                        <Select value={community} onValueChange={setCommunity}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Choose a community" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {communities.map((c) => (
+                                    <SelectItem key={c.id} value={c.name}>
+                                        {c.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    )}
 
                     <Input placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
 
                     <Textarea
-                        placeholder="Write your post in Markdown..."
+                        placeholder="Write your post in Markdown... (optional if you attach media)"
                         value={content}
                         onChange={(e) => setContent(e.target.value)}
                         rows={8}
+                    />
+
+                    <MediaPicker
+                        key={pickerKey}
+                        onChange={setMedia}
+                        onUploadingChange={setUploading}
+                        disabled={submitting}
                     />
 
                     <Input
@@ -121,8 +161,12 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
 
                     {error && <p className="text-sm text-red-500">{error}</p>}
 
-                    <Button type="submit" disabled={submitting}>
-                        {submitting ? 'Posting...' : 'Post'}
+                    <Button type="submit" disabled={submitting || uploading}>
+                        {submitting
+                            ? 'Posting...'
+                            : uploading
+                                ? 'Uploading...'
+                                : 'Post'}
                     </Button>
                 </form>
             </DialogContent>

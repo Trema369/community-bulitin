@@ -1,0 +1,6 @@
+# user-uploaded media — served at /uploads, not source
+storage/
+
+# secrets and local scratch
+.env
+cookies.txt

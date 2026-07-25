@@ -21,7 +21,7 @@ type SidebarWidgetProps = {
 };
 
 export function SidebarWidget({ posts }: SidebarWidgetProps) {
-    const { alerts } = useAlerts();
+    const { alerts } = useAlerts(undefined, 'alert');
 
     const topAlerts = useMemo(
         () => [...alerts].sort((a, b) => b.score - a.score).slice(0, 5),
@@ -31,7 +31,7 @@ export function SidebarWidget({ posts }: SidebarWidgetProps) {
     const trendingTags = useMemo(() => {
         const counts = new Map<string, number>();
         for (const post of posts) {
-            for (const tag of post.tags) {
+            for (const tag of post.tags ?? []) {
                 counts.set(tag, (counts.get(tag) ?? 0) + 1);
             }
         }

@@ -44,7 +44,8 @@ export default function UserProfilePage() {
         });
         if (res.ok) {
             const convo = await res.json();
-            router.push(`/chats/${convo.id}`);
+            // /chats opens the conversation given in ?c= — there is no /chats/[id] route
+            router.push(`/chats?c=${convo.id}`);
         }
     };
 
@@ -56,9 +57,9 @@ export default function UserProfilePage() {
     return (
         <div className="h-full overflow-y-auto">
             <div className="mx-auto flex w-full max-w-2xl flex-col gap-4">
-                <div className="flex items-center justify-between gap-4 rounded-lg border border-border p-4">
+                <div className="flex flex-wrap items-center gap-4 rounded-lg border border-border p-4">
                     <div className="flex items-center gap-3">
-                        <Avatar className="h-14 w-14">
+                        <Avatar className="h-14 w-14 flex-shrink-0">
                             <AvatarFallback className="text-lg">
                                 {getInitials(profile.username)}
                             </AvatarFallback>
@@ -75,7 +76,7 @@ export default function UserProfilePage() {
                     </div>
 
                     {!profile.is_self && (
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 sm:ml-auto">
                             <Button
                                 variant="outline"
                                 size="sm"

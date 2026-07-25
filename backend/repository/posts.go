@@ -22,6 +22,7 @@ func GetFeed(limit, offset int, userID uint, communityName string) ([]models.Pos
 	query := database.DB.
 		Preload("Author").
 		Preload("Community").
+		Preload("Media").
 		Order("created_at DESC")
 
 	if communityName != "" {
@@ -43,6 +44,7 @@ func GetPostByID(id uint, userID uint) (*models.Post, error) {
 	err := database.DB.
 		Preload("Author").
 		Preload("Community").
+		Preload("Media").
 		First(&post, id).Error
 	if err != nil {
 		return nil, err

@@ -2,25 +2,13 @@
 'use client';
 import { useState } from 'react';
 import { Button } from '../ui/button';
-import { Avatar, AvatarFallback } from '../ui/avatar';
-import { getInitials, cn } from '@/lib/utils';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { getInitials, cn, formatRelativeTime } from '@/lib/utils';
 import { ArrowBigUp, ArrowBigDown, Reply } from 'lucide-react';
 import { CommentComposer } from './comment-composer';
 import type { Comment } from '@/app/(dashboard)/post/[id]/page';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
-
-function formatRelativeTime(dateStr: string): string {
-    const diff = Date.now() - new Date(dateStr).getTime();
-    const seconds = Math.floor(diff / 1000);
-    if (seconds < 60) return 'just now';
-    const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return `${minutes}m ago`;
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours}h ago`;
-    const days = Math.floor(hours / 24);
-    return `${days}d ago`;
-}
 
 type CommentThreadProps = {
     comments: Comment[];
@@ -47,6 +35,46 @@ export function CommentThread({ comments, parentId, postId, onCommentAdded, dept
                 />
             ))}
         </div>
+    );
+}
+
+/**
+ * Curved connector branching off the parent's thread line into this reply's
+ * avatar. The straight part of the line is drawn by the parent (ThreadSpine), and
+ * both sit at the same x so they read as one continuous stroke.
+ */
+function ThreadElbow() {
+    return (
+        <svg
+            viewBox="0 0 20 14"
+            fill="none"
+            aria-hidden="true"
+            className="pointer-events-none absolute left-0 top-0 h-[14px] w-5 text-border"
+        >
+            <path
+                d="M0.5 0 C0.5 8, 0.5 12, 17 12"
+                stroke="currentColor"
+                strokeWidth="1"
+                strokeLinecap="round"
+            />
+        </svg>
+    );
+}
+
+/**
+ * The vertical line running from under a comment's avatar down the length of its
+ * replies. It sits at the avatar's centre, which shifts right once the comment is
+ * itself indented.
+ */
+function ThreadSpine({ depth }: { depth: number }) {
+    return (
+        <span
+            aria-hidden="true"
+            className={cn(
+                'pointer-events-none absolute bottom-0 top-7 w-px bg-border',
+                depth > 0 ? 'left-8' : 'left-3'
+            )}
+        />
     );
 }
 
@@ -88,10 +116,17 @@ function CommentItem({
         }
     };
 
+    const hasReplies = comments.some((c) => c.parent_id === comment.id);
+
     return (
-        <div className={cn(depth > 0 && 'ml-6 border-l border-border pl-3')}>
+        <div className={cn('relative', depth > 0 && 'pl-3 sm:pl-5')}>
+            {depth > 0 && <ThreadElbow />}
+            {hasReplies && <ThreadSpine depth={depth} />}
             <div className="flex items-start gap-2">
                 <Avatar className="h-6 w-6">
+                    {comment.author.avatar && (
+                        <AvatarImage src={comment.author.avatar} alt={comment.author.username} />
+                    )}
                     <AvatarFallback className="text-[10px]">{getInitials(comment.author.username)}</AvatarFallback>
                 </Avatar>
                 <div className="flex flex-1 flex-col gap-1">
@@ -127,7 +162,9 @@ function CommentItem({
                         </div>
                     )}
 
-                    <div className="mt-2">
+                    {/* pulled left so the thread line drops out of this comment's
+                        avatar rather than out of its text column */}
+                    <div className="mt-2 -ml-3 sm:-ml-5">
                         <CommentThread
                             comments={comments}
                             parentId={comment.id}

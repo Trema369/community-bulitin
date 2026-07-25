@@ -1,8 +1,11 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
+	"strings"
+	"time"
 
 	"com-hub/models"
 	"com-hub/repository"
@@ -12,10 +15,41 @@ import (
 )
 
 type createAlertRequest struct {
+	Kind        string `json:"kind" binding:"omitempty,oneof=alert announcement"`
 	Title       string `json:"title" binding:"required"`
 	Description string `json:"description" binding:"required"`
-	Category    string `json:"category" binding:"required,oneof=meeting robbery lost_item other"`
+	Category    string `json:"category" binding:"required"`
 	Community   string `json:"community" binding:"required"`
+	EventDate   string `json:"event_date"` // RFC3339 or YYYY-MM-DD, announcements only
+	Location    string `json:"location"`
+}
+
+// each kind accepts its own set of categories
+var categoriesByKind = map[string][]string{
+	"alert":        {"meeting", "robbery", "lost_item", "other"},
+	"announcement": {"cleanup", "event", "youth", "meeting", "other"},
+}
+
+func validCategory(kind, category string) bool {
+	for _, allowed := range categoriesByKind[kind] {
+		if allowed == category {
+			return true
+		}
+	}
+	return false
+}
+
+// parseEventDate accepts a full timestamp or a plain calendar date.
+func parseEventDate(raw string) (*time.Time, error) {
+	if strings.TrimSpace(raw) == "" {
+		return nil, nil
+	}
+	for _, layout := range []string{time.RFC3339, "2006-01-02T15:04", "2006-01-02"} {
+		if t, err := time.Parse(layout, raw); err == nil {
+			return &t, nil
+		}
+	}
+	return nil, errors.New("event date must look like 2026-07-30 or 2026-07-30T14:00")
 }
 
 func CreateAlertHandler(c *gin.Context) {
@@ -27,6 +61,23 @@ func CreateAlertHandler(c *gin.Context) {
 		return
 	}
 
+	kind := req.Kind
+	if kind == "" {
+		kind = "alert"
+	}
+	if !validCategory(kind, req.Category) {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "that category isn't valid for a " + kind,
+		})
+		return
+	}
+
+	eventDate, err := parseEventDate(req.EventDate)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
+
 	community, err := repository.GetCommunityByName(req.Community)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"message": "community not found"})
@@ -34,9 +85,12 @@ func CreateAlertHandler(c *gin.Context) {
 	}
 
 	alert := models.Alert{
+		Kind:        kind,
 		Title:       req.Title,
 		Description: req.Description,
 		Category:    req.Category,
+		EventDate:   eventDate,
+		Location:    req.Location,
 		AuthorID:    userID,
 		CommunityID: community.ID,
 	}
@@ -56,13 +110,14 @@ func CreateAlertHandler(c *gin.Context) {
 
 func GetAlertsHandler(c *gin.Context) {
 	community := c.Query("community")
+	kind := c.Query("kind") // "alert", "announcement", or empty for both
 
 	var userID uint
 	if uid, exists := c.Get("userID"); exists {
 		userID = uid.(uint)
 	}
 
-	alerts, err := repository.GetAlerts(community, userID)
+	alerts, err := repository.GetAlerts(community, kind, userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "failed to load alerts"})
 		return

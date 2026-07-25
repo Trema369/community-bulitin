@@ -1,6 +1,8 @@
 // app/(dashboard)/explore/page.tsx
 'use client';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useCommunities } from '@/lib/use-communities';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -13,7 +15,7 @@ import {
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, Users } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, shouldIgnoreCardClick } from '@/lib/utils';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
@@ -103,6 +105,7 @@ function FilterBelt({ active, onSelect }: { active: string; onSelect: (f: string
 }
 
 export default function ExplorePage() {
+    const router = useRouter();
     const { communities, loading, refresh } = useCommunities();
     const [activeFilter, setActiveFilter] = useState('All');
     const [joiningId, setJoiningId] = useState<number | null>(null);
@@ -150,10 +153,19 @@ export default function ExplorePage() {
                     {filtered.map((community) => (
                         <div
                             key={community.id}
-                            className="flex flex-col gap-2 rounded-lg border border-border p-4"
+                            onClick={(e) => {
+                                if (shouldIgnoreCardClick(e)) return;
+                                router.push(`/c/${community.name}`);
+                            }}
+                            className="flex cursor-pointer flex-col gap-2 rounded-lg border border-border p-4 transition-colors hover:border-foreground/20 hover:bg-accent/40"
                         >
                             <div className="flex flex-col gap-0.5">
-                                <span className="font-semibold">{community.name}</span>
+                                <Link
+                                    href={`/c/${community.name}`}
+                                    className="font-semibold hover:underline"
+                                >
+                                    {community.name}
+                                </Link>
                                 <span className="text-sm text-muted-foreground line-clamp-2">
                                     {community.description}
                                 </span>

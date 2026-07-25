@@ -3,7 +3,7 @@
 import { Button } from '../ui/button';
 import { cn } from '@/lib/utils';
 
-const FILTERS = ['All', 'Trending', 'Gaming', 'Music', 'Tech', 'Art'];
+const FILTERS = ['All', 'Gaming', 'Music', 'Tech', 'Art'];
 
 type FilterBarProps = {
     active: string;

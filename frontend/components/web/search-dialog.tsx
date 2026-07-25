@@ -1,9 +1,9 @@
 // components/web/search-dialog.tsx
 'use client';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Avatar, AvatarFallback } from '../ui/avatar';
-import { getInitials, cn } from '@/lib/utils';
+import { getInitials } from '@/lib/utils';
 import { Search, FileText, AlertTriangle, Users, Hash, X } from 'lucide-react';
 import { useSearch } from '@/lib/use-search';
 
@@ -33,10 +33,10 @@ export function SearchDialog({ open, setOpen }: SearchDialogProps) {
         results.users.length > 0 ||
         results.communities.length > 0;
 
-    const close = () => {
+    const close = useCallback(() => {
         setOpen(false);
         setQuery('');
-    };
+    }, [setOpen]);
 
     // close on Escape
     useEffect(() => {
@@ -46,7 +46,7 @@ export function SearchDialog({ open, setOpen }: SearchDialogProps) {
         };
         window.addEventListener('keydown', handleKey);
         return () => window.removeEventListener('keydown', handleKey);
-    }, [open]);
+    }, [open, close]);
 
     if (!open) return null;
 

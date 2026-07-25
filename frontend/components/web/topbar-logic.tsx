@@ -12,6 +12,7 @@ export type NavItem = {
     label?: string;
     icon?: LucideIcon;
     avatarLabel?: string;
+    avatarSrc?: string;
 };
 
 type TopbarProps = {
@@ -35,15 +36,25 @@ const NavLink = ({
     // Avatar/initials button — stays ghost always, highlight lives on the circle
     if (item.avatarLabel) {
         return (
-            <Button variant="ghost" onClick={onClick} className="p-1">
+            <Button variant="ghost" onClick={onClick} className="p-1" title="Settings">
                 <span
                     className={cn(
-                        'flex h-6 w-6 items-center justify-center rounded-full bg-primary text-[11px] font-semibold text-primary-foreground transition-all',
+                        'relative flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-primary text-[11px] font-semibold text-primary-foreground transition-all',
                         isActive &&
                         'ring-2 ring-offset-2 ring-offset-background ring-primary'
                     )}
                 >
-                    {item.avatarLabel}
+                    {item.avatarSrc ? (
+                        <Image
+                            src={item.avatarSrc}
+                            alt=""
+                            fill
+                            sizes="28px"
+                            className="object-cover"
+                        />
+                    ) : (
+                        item.avatarLabel
+                    )}
                 </span>
                 {item.label && (
                     <span className="text-sm font-medium">{item.label}</span>
@@ -101,9 +112,9 @@ export const TopBar = ({
     const rightItems = contents.slice(1);
 
     return (
-        <nav className="flex items-center w-full gap-4 p-4 text-foreground">
+        <nav className="flex w-full items-center gap-3 p-3 text-foreground sm:gap-4 sm:p-4">
             {/* Left zone */}
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-4 sm:gap-6">
                 {leftItems.map((item) => (
                     <NavLink
                         key={item.key}
@@ -115,12 +126,12 @@ export const TopBar = ({
             </div>
 
             {/* Middle zone — earned badges */}
-            <div className="flex flex-1 items-center justify-center">
+            <div className="hidden flex-1 items-center justify-center md:flex">
                 <BadgeBar badges={badges} />
             </div>
 
             {/* Right zone */}
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2 sm:gap-6">
                 {rightItems.map((item) => (
                     <NavLink
                         key={item.key}

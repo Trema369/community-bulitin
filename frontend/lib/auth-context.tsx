@@ -7,7 +7,12 @@ import {
     ReactNode,
 } from 'react';
 
-type User = { id: number; username: string; email: string } | null;
+type User = {
+    id: number;
+    username: string;
+    email: string;
+    avatar?: string;
+} | null;
 
 type AuthContextType = {
     user: User;
@@ -19,6 +24,8 @@ type AuthContextType = {
         password: string
     ) => Promise<void>;
     logout: () => Promise<void>;
+    /** Re-reads /me — call after editing the profile. */
+    refresh: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -83,7 +90,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     return (
-        <AuthContext.Provider value={{ user, loading, signin, signup, logout }}>
+        <AuthContext.Provider
+            value={{ user, loading, signin, signup, logout, refresh: fetchMe }}
+        >
             {children}
         </AuthContext.Provider>
     );

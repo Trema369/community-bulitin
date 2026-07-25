@@ -14,7 +14,7 @@ const PRIORITY_DOT: Record<string, string> = {
 };
 
 export function TopAlertsCard() {
-    const { alerts } = useAlerts();
+    const { alerts } = useAlerts(undefined, 'alert');
 
     const topAlerts = useMemo(
         () => [...alerts].sort((a, b) => b.score - a.score).slice(0, 5),
@@ -22,7 +22,7 @@ export function TopAlertsCard() {
     );
 
     return (
-        <div className="flex min-h-[220px] flex-col gap-3 rounded-lg border border-border p-6">
+        <div className="flex min-h-[220px] flex-shrink-0 flex-col gap-3 rounded-xl border border-border p-6">
             <div className="flex items-center gap-2">
                 <AlertTriangle className="h-4 w-4 text-red-500" />
                 <h3 className="text-sm font-semibold">Top alerts</h3>

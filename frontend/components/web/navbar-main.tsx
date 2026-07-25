@@ -176,7 +176,6 @@ function NavMainItem({
 
 function NavMainSubItem({
     item,
-    activeParent,
     setActiveParent,
     activeChild,
     setActiveChild,

@@ -3,6 +3,7 @@ package uploads
 
 import (
 	"archive/zip"
+	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -15,21 +16,54 @@ import (
 	"github.com/ledongthuc/pdf"
 )
 
-const uploadDir = "./uploads"
+// Files land outside the source tree — the old ./uploads dir was this package's
+// own directory, so serving it statically exposed the .go sources.
+// Public URLs stay /uploads/<name>; main.go maps that prefix here.
+const uploadDir = "./storage/media"
+
+// ErrInvalidUpload marks a rejection the caller caused (bad type, too big),
+// so handlers can answer 400 instead of 500.
+var ErrInvalidUpload = errors.New("invalid upload")
+
+// Per-type upload ceilings. Video gets more headroom than stills.
+const (
+	MaxImageSize = 10 << 20 // 10 MB
+	MaxVideoSize = 50 << 20 // 50 MB
+	MaxOtherSize = 15 << 20 // 15 MB
+)
 
 func init() {
 	os.MkdirAll(uploadDir, 0755)
 }
 
+func maxSizeFor(mediaType string) int64 {
+	switch mediaType {
+	case "image":
+		return MaxImageSize
+	case "video":
+		return MaxVideoSize
+	default:
+		return MaxOtherSize
+	}
+}
+
 // SaveFile writes an uploaded file to disk and returns its public URL + detected media type.
 func SaveFile(fileHeader *multipart.FileHeader) (url string, mediaType string, err error) {
+	ext := strings.ToLower(filepath.Ext(fileHeader.Filename))
+	mediaType = detectMediaType(ext)
+	if mediaType == "file" {
+		return "", "", fmt.Errorf("%w: unsupported file type %q", ErrInvalidUpload, ext)
+	}
+	if limit := maxSizeFor(mediaType); fileHeader.Size > limit {
+		return "", "", fmt.Errorf("%w: file is too large (max %d MB for %ss)", ErrInvalidUpload, limit>>20, mediaType)
+	}
+
 	src, err := fileHeader.Open()
 	if err != nil {
 		return "", "", err
 	}
 	defer src.Close()
 
-	ext := strings.ToLower(filepath.Ext(fileHeader.Filename))
 	filename := uuid.New().String() + ext
 	destPath := filepath.Join(uploadDir, filename)
 
@@ -43,7 +77,6 @@ func SaveFile(fileHeader *multipart.FileHeader) (url string, mediaType string, e
 		return "", "", err
 	}
 
-	mediaType = detectMediaType(ext)
 	return "/uploads/" + filename, mediaType, nil
 }
 

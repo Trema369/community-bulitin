@@ -28,15 +28,15 @@ import { useCommunities } from '@/lib/use-communities';
 
 const navItems = [
     { label: 'Home', href: '/home', icon: Home },
-    { label: 'Alerts', href: '/alerts', icon: Zap },
+    { label: 'Alerts & Announcements', href: '/alerts', icon: Zap },
     { label: 'Explore', href: '/explore', icon: Handshake },
     { label: 'Resources', href: '/resources', icon: LibraryBig },
-    { label: 'Ardvetisments', href: '/advertisements', icon: BookOpen },
+    { label: 'Advertisements', href: '/advertisements', icon: BookOpen },
     { label: 'Messages', href: '/chats', icon: MessageCircle },
     { label: 'Following', href: '/following', icon: Users },
 ];
 
-export function Sidebar() {
+export function Sidebar({ onNavigate }: { onNavigate?: () => void } = {}) {
     const pathname = usePathname();
     const [collapsed, setCollapsed] = useState(false);
     const { communities } = useCommunities();
@@ -54,27 +54,36 @@ export function Sidebar() {
                     collapsed ? 'w-[72px]' : 'w-[260px]'
                 )}
             >
-                <div className="flex h-[64px] items-center gap-3 overflow-hidden px-4 flex-shrink-0">
+                <Link
+                    href="/home"
+                    onClick={onNavigate}
+                    className="flex h-[76px] flex-shrink-0 items-center gap-3 overflow-hidden px-4"
+                >
+                    {/* the source svg is square — sizing it square stops the mark
+                        looking squashed */}
                     <Image
                         src="/dailybulletinv4gy.svg"
-                        alt="StudyHive icon"
-                        width={800}
-                        height={200}
-                        className="h-10 w-14 flex-shrink-0 rounded-md"
+                        alt="Bulittin"
+                        width={512}
+                        height={512}
+                        className="h-12 w-12 flex-shrink-0"
                         priority
                     />
 
-                    <h1
+                    <span
                         className={cn(
-                            'text-2xl font-extrabold tracking-tight transition-all duration-200 whitespace-nowrap',
-                            collapsed ? 'opacity-0 w-0' : 'opacity-100'
+                            'flex flex-col leading-none transition-all duration-200',
+                            collapsed ? 'w-0 opacity-0' : 'opacity-100'
                         )}
                     >
-                        <span className="text-[#969696] dark:text-[#969696]">
+                        <span className="whitespace-nowrap text-2xl font-extrabold tracking-tight text-foreground">
                             Bulittin
                         </span>
-                    </h1>
-                </div>
+                        <span className="mt-1 whitespace-nowrap text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                            Community hub
+                        </span>
+                    </span>
+                </Link>
 
                 <nav className="flex flex-1 flex-col gap-1 overflow-y-auto overflow-x-hidden p-2 pt-8">
                     {navItems.map(({ label, href, icon: Icon }) => {
@@ -92,7 +101,7 @@ export function Sidebar() {
                                     'font-semibold text-primary shadow-sm'
                                 )}
                             >
-                                <Link href={href}>
+                                <Link href={href} onClick={onNavigate}>
                                     <Icon
                                         className={cn(
                                             'h-[18px] w-[18px] flex-shrink-0',
@@ -145,7 +154,7 @@ export function Sidebar() {
                                             'font-semibold text-primary'
                                         )}
                                     >
-                                        <Link href={href}>
+                                        <Link href={href} onClick={onNavigate}>
                                             <Hash
                                                 className={cn(
                                                     'h-4 w-4 flex-shrink-0',

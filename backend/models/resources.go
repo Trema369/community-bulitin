@@ -8,11 +8,17 @@ import (
 )
 
 type Resource struct {
-	ID          uint           `gorm:"primaryKey" json:"id"`
-	Type        string         `json:"type"` // "note" or "flashcard"
+	ID uint `gorm:"primaryKey" json:"id"`
+	// "note", "flashcard", "document" (pdf/docx/txt) or "media" (image/video)
+	Type        string         `json:"type"`
 	Title       string         `json:"title"`
 	Description string         `json:"description"`
 	Content     string         `json:"content"` // markdown, notes only
+
+	// uploaded file, for document and media resources
+	FileURL  string `json:"file_url"`
+	FileName string `json:"file_name"`
+	FileType string `json:"file_type"` // "image", "video" or "document"
 	Tags        pq.StringArray `gorm:"type:text[]" json:"tags"`
 	IsPublic    bool           `json:"is_public"`
 	Code        string         `gorm:"unique" json:"code"` // share code, any type

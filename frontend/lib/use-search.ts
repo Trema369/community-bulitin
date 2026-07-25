@@ -23,28 +23,34 @@ const API_BASE =
     process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
 export function useSearch(query: string) {
-    const [results, setResults] = useState<SearchResults>(EMPTY);
-    const [loading, setLoading] = useState(false);
+    const trimmed = query.trim();
+
+    // results are stored alongside the query that produced them, so "are these
+    // stale?" becomes a comparison during render instead of a setState in an effect
+    const [fetched, setFetched] = useState<{
+        query: string;
+        results: SearchResults;
+    }>({ query: '', results: EMPTY });
 
     useEffect(() => {
-        if (!query.trim()) {
-            setResults(EMPTY);
-            return;
-        }
+        if (!trimmed) return;
 
-        setLoading(true);
         const timeout = setTimeout(() => {
-            fetch(`${API_BASE}/search?q=${encodeURIComponent(query)}`, {
+            fetch(`${API_BASE}/search?q=${encodeURIComponent(trimmed)}`, {
                 credentials: 'include',
             })
                 .then((res) => (res.ok ? res.json() : EMPTY))
-                .then(setResults)
-                .catch(() => setResults(EMPTY))
-                .finally(() => setLoading(false));
+                .then((results) => setFetched({ query: trimmed, results }))
+                .catch(() => setFetched({ query: trimmed, results: EMPTY }));
         }, 300);
 
         return () => clearTimeout(timeout);
-    }, [query]);
+    }, [trimmed]);
 
-    return { results, loading };
+    const current = fetched.query === trimmed;
+
+    return {
+        results: trimmed && current ? fetched.results : EMPTY,
+        loading: trimmed !== '' && !current,
+    };
 }

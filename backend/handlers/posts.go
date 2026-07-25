@@ -1,8 +1,11 @@
 package handlers
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"com-hub/models"
 	"com-hub/repository"
@@ -11,11 +14,45 @@ import (
 	"github.com/gin-gonic/gin/binding"
 )
 
+const maxPostMedia = 4
+
+type postMediaInput struct {
+	URL  string `json:"url" binding:"required"`
+	Type string `json:"type" binding:"required"`
+	Alt  string `json:"alt"`
+}
+
 type createPostRequest struct {
-	Title     string   `json:"title" binding:"required"`
-	Content   string   `json:"content" binding:"required"`
-	Tags      []string `json:"tags"`
-	Community string   `json:"community" binding:"required"`
+	Title     string           `json:"title" binding:"required"`
+	Content   string           `json:"content"`
+	Tags      []string         `json:"tags"`
+	Community string           `json:"community" binding:"required"`
+	Media     []postMediaInput `json:"media"`
+}
+
+// buildPostMedia validates client-supplied attachments. URLs must point at files
+// this server already stored via /uploads/media, so a post can't embed a
+// arbitrary remote URL through the media table.
+func buildPostMedia(inputs []postMediaInput) ([]models.PostMedia, error) {
+	if len(inputs) > maxPostMedia {
+		return nil, fmt.Errorf("a post can have at most %d attachments", maxPostMedia)
+	}
+
+	media := make([]models.PostMedia, 0, len(inputs))
+	for _, in := range inputs {
+		if !strings.HasPrefix(in.URL, "/uploads/") || strings.Contains(in.URL, "..") {
+			return nil, errors.New("invalid media url")
+		}
+		if in.Type != "image" && in.Type != "video" {
+			return nil, errors.New("media must be an image or a video")
+		}
+		media = append(media, models.PostMedia{
+			URL:  in.URL,
+			Type: in.Type,
+			Alt:  in.Alt,
+		})
+	}
+	return media, nil
 }
 
 func CreatePostHandler(c *gin.Context) {
@@ -23,6 +60,16 @@ func CreatePostHandler(c *gin.Context) {
 	var req createPostRequest
 	if err := c.ShouldBindBodyWith(&req, binding.JSON); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "incorrect format"})
+		return
+	}
+	// a post carries text, attachments, or both — but not neither
+	if strings.TrimSpace(req.Content) == "" && len(req.Media) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "add some content or an attachment"})
+		return
+	}
+	media, err := buildPostMedia(req.Media)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 	community, err := repository.GetCommunityByName(req.Community)
@@ -36,6 +83,7 @@ func CreatePostHandler(c *gin.Context) {
 		Tags:        req.Tags,
 		AuthorID:    userID,
 		CommunityID: community.ID,
+		Media:       media,
 	}
 	if err := repository.CreatePost(&post); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "failed to create post"})

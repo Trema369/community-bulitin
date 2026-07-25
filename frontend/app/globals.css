@@ -23,6 +23,17 @@
   --color-chart-3: var(--chart-3);
   --color-chart-2: var(--chart-2);
   --color-chart-1: var(--chart-1);
+  /* semantic accents — used for categories, statuses and highlights */
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-brand: var(--brand);
+  --color-brand-soft: var(--brand-soft);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -55,32 +66,46 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
+  /* warm metallic gold in light mode — surfaces stay neutral, colour carries
+     actions and accents. Dark mode swaps this for orange on grey. */
+  --primary: oklch(0.62 0.13 82);
+  --primary-foreground: oklch(0.99 0 0);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --muted-foreground: oklch(0.52 0.012 82);
+  --accent: oklch(0.965 0.02 85);
+  --accent-foreground: oklch(0.35 0.07 82);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  --border: oklch(0.915 0.006 85);
+  --input: oklch(0.915 0.006 85);
+  --ring: oklch(0.62 0.13 82);
+
+  --brand: oklch(0.62 0.13 82);
+  --brand-soft: oklch(0.955 0.045 88);
+  --success: oklch(0.55 0.15 155);
+  --success-soft: oklch(0.94 0.05 155);
+  --warning: oklch(0.62 0.15 70);
+  --warning-soft: oklch(0.95 0.06 80);
+  --info: oklch(0.58 0.15 230);
+  --info-soft: oklch(0.95 0.04 230);
+  --danger: oklch(0.577 0.245 27.325);
+  --danger-soft: oklch(0.95 0.05 27);
+
+  --chart-1: oklch(0.62 0.13 82);
+  --chart-2: oklch(0.58 0.15 230);
+  --chart-3: oklch(0.55 0.15 155);
+  --chart-4: oklch(0.62 0.15 70);
+  --chart-5: oklch(0.55 0.19 330);
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
+  --sidebar: oklch(0.985 0.005 85);
   --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary: oklch(0.62 0.13 82);
   --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar-accent: oklch(0.965 0.02 85);
+  --sidebar-accent-foreground: oklch(0.35 0.07 82);
+  --sidebar-border: oklch(0.915 0.006 85);
+  --sidebar-ring: oklch(0.62 0.13 82);
 }
 
 .dark {
@@ -90,31 +115,44 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
+  --primary: oklch(0.74 0.17 52);
+  --primary-foreground: oklch(0.17 0.02 52);
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.72 0.012 60);
+  --accent: oklch(0.3 0.02 55);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
+  --border: oklch(1 0 0 / 12%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
+  --ring: oklch(0.74 0.17 52);
+
+  --brand: oklch(0.74 0.17 52);
+  --brand-soft: oklch(0.31 0.06 52);
+  --success: oklch(0.72 0.15 155);
+  --success-soft: oklch(0.3 0.06 155);
+  --warning: oklch(0.78 0.14 75);
+  --warning-soft: oklch(0.32 0.06 75);
+  --info: oklch(0.72 0.14 230);
+  --info-soft: oklch(0.3 0.06 230);
+  --danger: oklch(0.704 0.191 22.216);
+  --danger-soft: oklch(0.32 0.07 22);
+
+  --chart-1: oklch(0.74 0.17 52);
+  --chart-2: oklch(0.72 0.14 230);
+  --chart-3: oklch(0.72 0.15 155);
+  --chart-4: oklch(0.78 0.14 75);
+  --chart-5: oklch(0.7 0.17 330);
+  --sidebar: oklch(0.19 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-primary: oklch(0.74 0.17 52);
+  /* dark text on orange — white would be low contrast */
+  --sidebar-primary-foreground: oklch(0.17 0.02 52);
+  --sidebar-accent: oklch(0.3 0.02 55);
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --sidebar-ring: oklch(0.74 0.17 52);
 }
 
 @layer base {
@@ -126,6 +164,28 @@
   }
   html {
     @apply font-sans;
+    /* everything in the UI is sized in rem, so nudging the root scales type,
+       spacing and radii together — the app read too small at the 16px default */
+    font-size: 17.5px;
   }
+}
+
+@layer utilities {
+  /* soft tinted chip used for categories and statuses */
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium;
+  }
+}
+
+/* Scrollbars are hidden everywhere — content still scrolls by wheel, touch,
+   keyboard and drag, there's just no visible track. */
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+*::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
 }
 @plugin "@tailwindcss/typography";

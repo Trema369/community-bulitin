@@ -4,6 +4,7 @@ package handlers
 import (
 	"net/http"
 	"strconv"
+	"strings"
 
 	"com-hub/models"
 	"com-hub/repository"
@@ -18,13 +19,16 @@ type cardInput struct {
 }
 
 type createResourceRequest struct {
-	Type        string      `json:"type" binding:"required,oneof=note flashcard"`
+	Type        string      `json:"type" binding:"required,oneof=note flashcard document media"`
 	Title       string      `json:"title" binding:"required"`
 	Description string      `json:"description"`
 	Content     string      `json:"content"`
 	Tags        []string    `json:"tags"`
 	IsPublic    bool        `json:"is_public"`
 	Cards       []cardInput `json:"cards"`
+	FileURL     string      `json:"file_url"`
+	FileName    string      `json:"file_name"`
+	FileType    string      `json:"file_type"`
 }
 
 func CreateResourceHandler(c *gin.Context) {
@@ -36,6 +40,14 @@ func CreateResourceHandler(c *gin.Context) {
 		return
 	}
 
+	// uploads and media are nothing without their file
+	if req.Type == "document" || req.Type == "media" {
+		if !strings.HasPrefix(req.FileURL, "/uploads/") || strings.Contains(req.FileURL, "..") {
+			c.JSON(http.StatusBadRequest, gin.H{"message": "attach a file first"})
+			return
+		}
+	}
+
 	resource := models.Resource{
 		Type:        req.Type,
 		Title:       req.Title,
@@ -43,6 +55,9 @@ func CreateResourceHandler(c *gin.Context) {
 		Content:     req.Content,
 		Tags:        req.Tags,
 		IsPublic:    req.IsPublic,
+		FileURL:     req.FileURL,
+		FileName:    req.FileName,
+		FileType:    req.FileType,
 		AuthorID:    userID,
 	}
 

@@ -1,4 +1,3 @@
-// models/post.go
 package models
 
 import (
@@ -19,13 +18,21 @@ type Post struct {
 	CommunityID uint      `json:"-"`
 	Community   Community `json:"community"`
 
+	Media []PostMedia `json:"media" gorm:"foreignKey:PostID"`
+
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 
 	Score        int `gorm:"-" json:"score"`
 	ViewCount    int `gorm:"-" json:"view_count"`
 	CommentCount int `gorm:"-" json:"comment_count"`
-	//	Media []PostMedia `json:"media" gorm:"foreignKey:PostID"`
+	UserVote     int `gorm:"-" json:"user_vote"`
+}
 
-	UserVote int `gorm:"-" json:"user_vote"`
+type PostMedia struct {
+	ID     uint   `gorm:"primaryKey" json:"id"`
+	PostID uint   `json:"-"`
+	URL    string `json:"url"`
+	Type   string `json:"type"`
+	Alt    string `json:"alt"`
 }

@@ -1,14 +1,19 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	"github.com/lib/pq"
+)
 
 type Community struct {
-	ID          uint      `gorm:"primaryKey" json:"id"`
-	Name        string    `gorm:"unique" json:"name"`
-	Description string    `json:"description"`
-	CreatorID   uint      `json:"-"`
-	Creator     User      `json:"creator"`
-	CreatedAt   time.Time `json:"created_at"`
+	ID          uint           `gorm:"primaryKey" json:"id"`
+	Name        string         `gorm:"unique" json:"name"`
+	Description string         `json:"description"`
+	Rules       pq.StringArray `gorm:"type:text[]" json:"rules"`
+	CreatorID   uint           `json:"-"`
+	Creator     User           `json:"creator"`
+	CreatedAt   time.Time      `json:"created_at"`
 
 	MemberCount int  `gorm:"-" json:"member_count"`
 	IsMember    bool `gorm:"-" json:"is_member"`
