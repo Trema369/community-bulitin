@@ -1,11 +1,14 @@
 # --- BASE STAGE ---
 FROM node:22-alpine AS base
+# Prepare pnpm once here so downstream stages reuse it from the image layer
+# instead of each independently re-downloading it from the registry.
+RUN corepack enable && corepack prepare pnpm --activate
 
 # --- DEPS STAGE ---
 FROM base AS deps
 WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-RUN corepack enable && pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile
 
 # --- BUILDER STAGE ---
 FROM base AS builder
@@ -14,7 +17,7 @@ ARG NEXT_PUBLIC_API_BASE_URL
 ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN corepack enable && pnpm build
+RUN pnpm build
 
 # --- RUNNER STAGE ---
 FROM node:22-alpine AS runner
