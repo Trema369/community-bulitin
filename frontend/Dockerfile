@@ -3,9 +3,11 @@ FROM node:22-alpine AS base
 FROM base AS deps
 WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
-# Set environment variables so pnpm allows native builds for sharp & unrs-resolver
+# Explicitly authorize sharp and unrs-resolver in pnpm config before running install
 RUN corepack enable && \
-    PNPM_ONLY_BUILT_DEPENDENCIES="sharp,unrs-resolver" pnpm install --frozen-lockfile
+    pnpm config set "onlyBuiltDependencies[]" "sharp" && \
+    pnpm config set "onlyBuiltDependencies[]" "unrs-resolver" && \
+    pnpm install --frozen-lockfile
 
 FROM base AS builder
 WORKDIR /app
