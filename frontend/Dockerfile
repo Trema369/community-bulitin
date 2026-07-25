@@ -20,6 +20,10 @@ RUN corepack enable && pnpm build
 FROM node:22-alpine AS runner
 WORKDIR /app
 
+# Alpine ships without curl; Coolify's container healthcheck needs it to
+# probe the app, otherwise the container is never marked healthy.
+RUN apk add --no-cache curl
+
 ENV NODE_ENV=production
 ENV PORT=3000
 
