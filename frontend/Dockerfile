@@ -3,8 +3,9 @@ FROM node:22-alpine AS base
 FROM base AS deps
 WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
-# Force pnpm to execute lifecycle scripts for sharp/unrs-resolver during install
-RUN corepack enable && pnpm install --frozen-lockfile --config.ignore-scripts=false
+# Set environment variables so pnpm allows native builds for sharp & unrs-resolver
+RUN corepack enable && \
+    PNPM_ONLY_BUILT_DEPENDENCIES="sharp,unrs-resolver" pnpm install --frozen-lockfile
 
 FROM base AS builder
 WORKDIR /app
