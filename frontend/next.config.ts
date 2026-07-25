@@ -7,9 +7,12 @@ const API_BASE =
 const nextConfig: NextConfig = {
     output: "standalone",
 
-    // Point Turbopack to the parent monorepo root directory
+    // Pin the workspace root to this directory so Next doesn't mistake the
+    // unrelated root-level package.json/pnpm-lock.yaml (used only for the
+    // "dev" convenience script) for a monorepo root.
+    outputFileTracingRoot: path.resolve(__dirname),
     turbopack: {
-        root: path.resolve(__dirname, ".."),
+        root: path.resolve(__dirname),
     },
 
     async rewrites() {
