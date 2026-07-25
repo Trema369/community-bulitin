@@ -1,5 +1,5 @@
 # --- BASE STAGE ---
-FROM node:20-alpine AS base
+FROM node:22-alpine AS base
 
 # --- DEPS STAGE ---
 FROM base AS deps
@@ -17,7 +17,7 @@ COPY . .
 RUN corepack enable && pnpm build
 
 # --- RUNNER STAGE ---
-FROM node:20-alpine AS runner
+FROM node:22-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
